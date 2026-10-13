@@ -58,6 +58,12 @@ header .sub{font-size:12.5px;opacity:.85;line-height:1.7}
 .sub-line{font-size:12px;color:#9ca3af;margin-top:6px;padding-left:12px;cursor:pointer}
 .sub-line:hover{color:var(--blue)}
 .empty{text-align:center;color:#9ca3af;padding:30px}
+.welcome{background:var(--card);border:1px dashed #cbd5e1;border-radius:14px;padding:38px 24px;text-align:center}
+.welcome .wi{font-size:34px;line-height:1;margin-bottom:12px}
+.welcome h2{font-size:16px;font-weight:700;margin-bottom:8px;color:#1f2430}
+.welcome p{font-size:13px;color:var(--sub);line-height:1.9}
+.welcome .hints{display:inline-block;text-align:left;margin-top:14px;font-size:12.5px;color:#475569;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px 18px;line-height:2}
+.welcome .hints b{color:var(--blue)}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:50;align-items:center;justify-content:center;padding:20px}
 .modal-bg.open{display:flex}
 .modal{background:#fff;border-radius:14px;max-width:960px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
@@ -81,7 +87,7 @@ footer a{color:var(--blue);text-decoration:none}
 <div class="wrap">
 <header>
   <h1>🔍 SKU 退货原因深度分析 · 逐商品反馈问题</h1>
-  <div class="sub">对每个商品的「问题描述」逐条关键词归类，提取真实反馈问题 · 覆盖 172 个有退货的 SKU<br>点击任意问题条目，可查看<b>原始退货明细（含订单号）</b>，方便追踪每一单</div>
+  <div class="sub">对每个商品的「问题描述」逐条关键词归类，提取真实反馈问题 · 覆盖 172 个有退货的 SKU<br><b>默认不展示数据</b>，请先在上方筛选器中选择条件 · 点击任意问题条目，可查看<b>原始退货明细（含订单号）</b></div>
 </header>
 
 <nav class="topnav">
@@ -101,7 +107,7 @@ footer a{color:var(--blue);text-decoration:none}
   <input id="fSearch" placeholder="搜索 SKU 编码 / 简称 / 名称...">
   <button class="reset" onclick="resetFilter()">重置</button>
 </div>
-<div class="filter-note">退货月份支持<b>多选</b>：勾选 N 个月后，问题明细合并这 N 个月的退货单重算，退货率按这些月份的销售/退货汇总口径计算。</div>
+<div class="filter-note">默认<b>不展示数据</b>，选定任意筛选条件后才渲染结果。退货月份支持<b>多选</b>：勾选 N 个月后，问题明细合并这 N 个月的退货单重算，退货率按这些月份的销售/退货汇总口径计算。</div>
 
 <div class="kpis">
   <div class="kpi"><div class="v">172</div><div class="l">有退货的 SKU</div></div>
@@ -207,6 +213,28 @@ function computeView(x, months){
   const rr = so>0 ? Math.round(ro/so*1000)/10 : null;
   return {reasons, ret:ro, rr, desc:tot};
 }
+function hasFilter(){
+  const b=document.getElementById('fBrand').value;
+  const c=document.getElementById('fCat2').value;
+  const ln=document.getElementById('fLine').value;
+  const q=document.getElementById('fSearch').value.trim();
+  const onlyFb=document.getElementById('fOnlyFb').checked;
+  return !!(b||c||ln||q||getMonths().length||onlyFb);
+}
+function showWelcome(){
+  document.getElementById('shownCnt').textContent='—';
+  document.getElementById('list').innerHTML=`<div class="welcome">
+    <div class="wi">🔍</div>
+    <h2>请先在上方筛选器中选择条件</h2>
+    <p>本页默认<b>不展示数据</b>（共 172 个 SKU，全量渲染较慢）。<br>当你选定任意筛选条件后，匹配的 SKU 卡片会自动出现。</p>
+    <div class="hints">
+      ① 选择 <b>品牌 / 类目 / 产品线</b>，或输入 <b>SKU 编码 / 简称</b> 关键词<br>
+      ② 点击 <b>退货月份</b> 勾选 1 个或多个月份（支持多选）<br>
+      ③ 也可勾选 <b>「只看有明确反馈问题的」</b> 直接查看重点问题<br>
+      点 <b>重置</b> 可随时回到本空白状态
+    </div>
+  </div>`;
+}
 function render(){
   const b=document.getElementById('fBrand').value;
   const c=document.getElementById('fCat2').value;
@@ -218,6 +246,8 @@ function render(){
   const q=document.getElementById('fSearch').value.trim().toLowerCase();
   const onlyFb=document.getElementById('fOnlyFb').checked;
   const highRate=document.getElementById('fHighRate').checked;
+
+  if(!hasFilter()){ showWelcome(); return; }
 
   let list = DATA.items.filter(x=>
     (!b||x.brand===b) && (!c||x.cat2===c) && (!ln||x.line===ln) &&
