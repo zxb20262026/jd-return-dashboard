@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>售后退货月度分析报告 · 2026年1-9月</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --ink:#1f2430; --sub:#6b7280; --line:#e7eaf0;
+  --red:#e5484d; --yellow:#f0a020; --green:#16a34a; --blue:#2563eb;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding:28px 16px 60px}
+.wrap{max-width:960px;margin:0 auto}
+header{background:linear-gradient(135deg,#1f2430,#3a4256);color:#fff;border-radius:14px;padding:26px 30px;margin-bottom:18px}
+header h1{font-size:22px;font-weight:700;margin-bottom:6px}
+header .sub{font-size:13px;opacity:.85}
+.concl{background:#fff7ed;border:1px solid #fed7aa;border-left:5px solid #f0a020;border-radius:10px;padding:14px 18px;margin-bottom:18px;font-size:14px}
+.concl b{color:#c2410c}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 12px;text-align:center}
+.kpi .v{font-size:22px;font-weight:700;color:var(--ink)}
+.kpi .l{font-size:12px;color:var(--sub);margin-top:3px}
+.kpi.warn .v{color:var(--red)}
+.kpi.good .v{color:var(--green)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:18px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.card h2 .tag{font-size:12px;font-weight:600;color:#fff;border-radius:6px;padding:2px 8px}
+.card .desc{font-size:12.5px;color:var(--sub);margin-bottom:14px}
+.light-strip{display:grid;grid-template-columns:repeat(9,1fr);gap:8px}
+.lcell{background:#fafbfc;border:1px solid var(--line);border-radius:9px;padding:10px 4px;text-align:center}
+.lcell .dot{width:14px;height:14px;border-radius:50%;display:block;margin:0 auto 6px}
+.lcell .lm{display:block;font-size:12px;color:var(--sub)}
+.lcell .lv{display:block;font-size:13px;font-weight:700}
+.overall{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:12px 14px;background:#fafbfc;border:1px solid var(--line);border-radius:10px}
+.overall .big-dot{width:34px;height:34px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.overall .ot{font-size:15px;font-weight:700}
+.overall .os{font-size:12.5px;color:var(--sub)}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl thead th{background:#f3f4f6;color:#374151;font-weight:600;padding:9px 8px;border-bottom:2px solid var(--line);white-space:nowrap}
+table.tbl td{padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.tbl tbody tr:hover{background:#fafbfc}
+table.tbl .c{text-align:center}
+.up{color:var(--red);font-weight:600}
+.down{color:var(--green);font-weight:600}
+.muted{color:#9ca3af}
+.pill{font-size:11.5px;border-radius:20px;padding:2px 9px;font-weight:600}
+.pbar{background:#eef0f3;border-radius:20px;height:10px;overflow:hidden;min-width:120px}
+.pfill{height:100%;border-radius:20px}
+svg{width:100%;height:auto;display:block}
+.grid{stroke:#e9edf2;stroke-width:1}
+.grid.warn{stroke:#f0a020;stroke-dasharray:5,4;stroke-width:1.4}
+.grid.good{stroke:#16a34a;stroke-dasharray:5,4}
+.ylab{font-size:11px;fill:#8a93a3}
+.xlab{font-size:12px;fill:#4b5563;font-weight:600}
+.barval{font-size:11px;fill:#374151;font-weight:700}
+.aline{stroke:#2563eb;stroke-width:2.5}
+.adot{fill:#2563eb}
+.aval{font-size:10px;fill:#2563eb;font-weight:600}
+.leg{font-size:12px;fill:#4b5563}
+.insight{margin:0 0 12px;padding:13px 16px;border-radius:10px;font-size:13.5px;border:1px solid var(--line);background:#fafbfc}
+.insight b{}
+.insight.red{background:#fef2f2;border-color:#fecaca}
+.insight.yellow{background:#fffbeb;border-color:#fde68a}
+.insight.green{background:#f0fdf4;border-color:#bbf7d0}
+.act{display:flex;gap:12px;margin-bottom:10px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:#fafbfc;font-size:13.5px}
+.act .no{flex:0 0 28px;height:28px;border-radius:8px;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.act .txt{flex:1}
+.act .pri{font-size:11px;border-radius:20px;padding:2px 8px;font-weight:600;white-space:nowrap;align-self:flex-start}
+footer{text-align:center;color:#9ca3af;font-size:12.5px;margin-top:26px}
+footer a{color:var(--blue);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>📦 售后退货月度分析报告</h1>
+  <div class="sub">SKU 100110903333 · 京东自营（北京京东世纪贸易有限公司）· 统计口径：以销售时间（业务日期）为准 · 2026年1月–9月</div>
+</header>
+
+<div class="concl">
+  <b>一句话结论：</b>这个 SKU 1–9 月整体退货率 <b>32.94%</b>（退货订单 593 / 销售订单 1,800），金额口径 <b>30.67%</b>，<b>长期处于高风险红灯区</b>。走势呈「V 型恶化」：3 月降到全年最低 27.34% 后逐月反弹，<b>8 月冲上 40.88% 峰值</b>，9 月仍在 37.30% 高位。这不是正常波动，是产品/描述/物流存在系统性问题，必须立刻排查退货原因。
+</div>
+
+<div class="grid">
+  <div class="kpi"><div class="v">1,800</div><div class="l">销售订单（单）</div></div>
+  <div class="kpi"><div class="v">593</div><div class="l">退货订单（单）</div></div>
+  <div class="kpi warn"><div class="v">32.94%</div><div class="l">订单退货率</div></div>
+  <div class="kpi"><div class="v">¥134,757</div><div class="l">销售金额</div></div>
+  <div class="kpi"><div class="v">¥41,331</div><div class="l">退货金额</div></div>
+  <div class="kpi warn"><div class="v">30.67%</div><div class="l">金额退货率</div></div>
+</div>
+
+<div class="card">
+  <h2>🚦 风险红黄绿灯 <span class="tag" style="background:#e5484d">红灯</span></h2>
+  <div class="desc">健康线：≤20% 绿灯 · 20%–30% 黄灯 · &gt;30% 红灯。整体与多数月份均处于红灯区。</div>
+  <div class="overall">
+    <div class="big-dot" style="background:#e5484d"></div>
+    <div>
+      <div class="ot">整体退货率 32.94%（红灯）</div>
+      <div class="os">远超 30% 红线，属「必须立即干预」级别。8 月（40.88%）、9 月（37.30%）、1–2 月（34.5%+）为最危险时段。</div>
+    </div>
+  </div>
+  <div class="light-strip"><div class="lcell"><span class="dot" style="background:#e5484d"></span><span class="lm">1月</span><span class="lv" style="color:#e5484d">34.6%</span></div><div class="lcell"><span class="dot" style="background:#e5484d"></span><span class="lm">2月</span><span class="lv" style="color:#e5484d">34.6%</span></div><div class="lcell"><span class="dot" style="background:#f0a020"></span><span class="lm">3月</span><span class="lv" style="color:#f0a020">27.3%</span></div><div class="lcell"><span class="dot" style="background:#f0a020"></span><span class="lm">4月</span><span class="lv" style="color:#f0a020">27.9%</span></div><div class="lcell"><span class="dot" style="background:#f0a020"></span><span class="lm">5月</span><span class="lv" style="color:#f0a020">29.3%</span></div><div class="lcell"><span class="dot" style="background:#e5484d"></span><span class="lm">6月</span><span class="lv" style="color:#e5484d">30.6%</span></div><div class="lcell"><span class="dot" style="background:#e5484d"></span><span class="lm">7月</span><span class="lv" style="color:#e5484d">33.3%</span></div><div class="lcell"><span class="dot" style="background:#e5484d"></span><span class="lm">8月</span><span class="lv" style="color:#e5484d">40.9%</span></div><div class="lcell"><span class="dot" style="background:#e5484d"></span><span class="lm">9月</span><span class="lv" style="color:#e5484d">37.3%</span></div></div>
+</div>
+
+<div class="card">
+  <h2>📊 量化评分卡</h2>
+  <div class="desc">健康分 = 100 −（退货率 − 15%）× 4，退货率 ≤15% 记满分 100，≥35% 记 0 分。分值越低，退货问题越严重。</div>
+  <table class="tbl score"><thead><tr><th>期间</th><th class="c">订单退货率</th><th class="c">健康分</th><th>健康度</th></tr></thead><tbody><tr><td>2026年1-9月（整体）</td><td class="c"><b>32.94%</b></td><td class="c"><b style="color:#e5484d">28</b></td><td><div class="pbar"><div class="pfill" style="width:28%;background:#e5484d"></div></div></td></tr><tr><td>2026年1月</td><td class="c"><b>34.57%</b></td><td class="c"><b style="color:#e5484d">22</b></td><td><div class="pbar"><div class="pfill" style="width:22%;background:#e5484d"></div></div></td></tr><tr><td>2026年2月</td><td class="c"><b>34.56%</b></td><td class="c"><b style="color:#e5484d">22</b></td><td><div class="pbar"><div class="pfill" style="width:22%;background:#e5484d"></div></div></td></tr><tr><td>2026年3月</td><td class="c"><b>27.34%</b></td><td class="c"><b style="color:#f0a020">51</b></td><td><div class="pbar"><div class="pfill" style="width:51%;background:#f0a020"></div></div></td></tr><tr><td>2026年4月</td><td class="c"><b>27.92%</b></td><td class="c"><b style="color:#f0a020">48</b></td><td><div class="pbar"><div class="pfill" style="width:48%;background:#f0a020"></div></div></td></tr><tr><td>2026年5月</td><td class="c"><b>29.31%</b></td><td class="c"><b style="color:#f0a020">43</b></td><td><div class="pbar"><div class="pfill" style="width:43%;background:#f0a020"></div></div></td></tr><tr><td>2026年6月</td><td class="c"><b>30.61%</b></td><td class="c"><b style="color:#f0a020">38</b></td><td><div class="pbar"><div class="pfill" style="width:38%;background:#f0a020"></div></div></td></tr><tr><td>2026年7月</td><td class="c"><b>33.33%</b></td><td class="c"><b style="color:#e5484d">27</b></td><td><div class="pbar"><div class="pfill" style="width:27%;background:#e5484d"></div></div></td></tr><tr><td>2026年8月</td><td class="c"><b>40.88%</b></td><td class="c"><b style="color:#e5484d">0</b></td><td><div class="pbar"><div class="pfill" style="width:0%;background:#e5484d"></div></div></td></tr><tr><td>2026年9月</td><td class="c"><b>37.30%</b></td><td class="c"><b style="color:#e5484d">11</b></td><td><div class="pbar"><div class="pfill" style="width:11%;background:#e5484d"></div></div></td></tr></tbody></table>
+</div>
+
+<div class="card">
+  <h2>📈 月度退货率趋势</h2>
+  <div class="desc">柱状 = 订单退货率，蓝线 = 金额退货率；虚线为 20%（绿）与 30%（红）预警线。</div>
+  <svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" role="img"><line class="grid" x1="64" y1="320.0" x2="856" y2="320.0"/><text class="ylab" x="56" y="324.0" text-anchor="end">0%</text><line class="grid" x1="64" y1="255.6" x2="856" y2="255.6"/><text class="ylab" x="56" y="259.6" text-anchor="end">10%</text><line class="grid good" x1="64" y1="191.1" x2="856" y2="191.1"/><text class="ylab" x="56" y="195.1" text-anchor="end">20%</text><line class="grid warn" x1="64" y1="126.7" x2="856" y2="126.7"/><text class="ylab" x="56" y="130.7" text-anchor="end">30%</text><line class="grid" x1="64" y1="62.2" x2="856" y2="62.2"/><text class="ylab" x="56" y="66.2" text-anchor="end">40%</text><rect class="bar" x="89.5" y="97.2" width="37.0" height="222.8" fill="#e5484d"/><text class="barval" x="108.0" y="91.2" text-anchor="middle">34.6%</text><text class="xlab" x="108.0" y="348" text-anchor="middle">1月</text><rect class="bar" x="177.5" y="97.3" width="37.0" height="222.7" fill="#e5484d"/><text class="barval" x="196.0" y="91.3" text-anchor="middle">34.6%</text><text class="xlab" x="196.0" y="348" text-anchor="middle">2月</text><rect class="bar" x="265.5" y="143.8" width="37.0" height="176.2" fill="#f0a020"/><text class="barval" x="284.0" y="137.8" text-anchor="middle">27.3%</text><text class="xlab" x="284.0" y="348" text-anchor="middle">3月</text><rect class="bar" x="353.5" y="140.1" width="37.0" height="179.9" fill="#f0a020"/><text class="barval" x="372.0" y="134.1" text-anchor="middle">27.9%</text><text class="xlab" x="372.0" y="348" text-anchor="middle">4月</text><rect class="bar" x="441.5" y="131.1" width="37.0" height="188.9" fill="#f0a020"/><text class="barval" x="460.0" y="125.1" text-anchor="middle">29.3%</text><text class="xlab" x="460.0" y="348" text-anchor="middle">5月</text><rect class="bar" x="529.5" y="122.7" width="37.0" height="197.3" fill="#e5484d"/><text class="barval" x="548.0" y="116.7" text-anchor="middle">30.6%</text><text class="xlab" x="548.0" y="348" text-anchor="middle">6月</text><rect class="bar" x="617.5" y="105.2" width="37.0" height="214.8" fill="#e5484d"/><text class="barval" x="636.0" y="99.2" text-anchor="middle">33.3%</text><text class="xlab" x="636.0" y="348" text-anchor="middle">7月</text><rect class="bar" x="705.5" y="56.6" width="37.0" height="263.4" fill="#e5484d"/><text class="barval" x="724.0" y="50.6" text-anchor="middle">40.9%</text><text class="xlab" x="724.0" y="348" text-anchor="middle">8月</text><rect class="bar" x="793.5" y="79.6" width="37.0" height="240.4" fill="#e5484d"/><text class="barval" x="812.0" y="73.6" text-anchor="middle">37.3%</text><text class="xlab" x="812.0" y="348" text-anchor="middle">9月</text><polyline class="aline" points="108.0,108.2 196.0,109.8 284.0,161.1 372.0,146.1 460.0,140.4 548.0,130.2 636.0,121.4 724.0,90.1 812.0,102.0" fill="none"/><circle class="adot" cx="108.0" cy="108.2" r="3.5"/><text class="aval" x="108.0" y="98.2" text-anchor="middle">32.9%</text><circle class="adot" cx="196.0" cy="109.8" r="3.5"/><text class="aval" x="196.0" y="99.8" text-anchor="middle">32.6%</text><circle class="adot" cx="284.0" cy="161.1" r="3.5"/><text class="aval" x="284.0" y="151.1" text-anchor="middle">24.6%</text><circle class="adot" cx="372.0" cy="146.1" r="3.5"/><text class="aval" x="372.0" y="136.1" text-anchor="middle">27.0%</text><circle class="adot" cx="460.0" cy="140.4" r="3.5"/><text class="aval" x="460.0" y="130.4" text-anchor="middle">27.9%</text><circle class="adot" cx="548.0" cy="130.2" r="3.5"/><text class="aval" x="548.0" y="120.2" text-anchor="middle">29.4%</text><circle class="adot" cx="636.0" cy="121.4" r="3.5"/><text class="aval" x="636.0" y="111.4" text-anchor="middle">30.8%</text><circle class="adot" cx="724.0" cy="90.1" r="3.5"/><text class="aval" x="724.0" y="80.1" text-anchor="middle">35.7%</text><circle class="adot" cx="812.0" cy="102.0" r="3.5"/><text class="aval" x="812.0" y="92.0" text-anchor="middle">33.8%</text><rect x="64" y="330" width="12" height="12" fill="#e5484d"/><text class="leg" x="82" y="340">订单退货率（退货订单/销售订单）</text><line x1="314" y1="336" x2="354" y2="336" stroke="#2563eb" stroke-width="2.5"/><text class="leg" x="360" y="340">金额退货率（退货金额/销售金额）</text></svg>
+</div>
+
+<div class="card">
+  <h2>📋 月度明细（以销售时间为准）</h2>
+  <div class="desc">环比 = 本月订单退货率较上月的变化（百分点 pp）。▲ 变差 · ▼ 改善。</div>
+  <table class="tbl"><thead><tr><th>月份</th><th class="c">销售订单</th><th class="c">退货订单</th><th class="c">订单退货率</th><th class="c">环比</th><th class="c">销售金额</th><th class="c">退货金额</th><th class="c">金额退货率</th><th class="c">信号</th></tr></thead><tbody><tr><td><b>1月</b></td><td class="c">405</td><td class="c">140</td><td class="c"><b style="color:#e5484d">34.57%</b></td><td class="c"><span class="muted">—</span></td><td class="c">¥29,601</td><td class="c">¥9,729</td><td class="c">32.87%</td><td class="c"><span class="pill" style="background:#e5484d22;color:#e5484d;border:1px solid #e5484d">红灯</span></td></tr><tr><td><b>2月</b></td><td class="c">217</td><td class="c">75</td><td class="c"><b style="color:#e5484d">34.56%</b></td><td class="c"><span class="down">▼ 0.01pp</span></td><td class="c">¥15,870</td><td class="c">¥5,175</td><td class="c">32.61%</td><td class="c"><span class="pill" style="background:#e5484d22;color:#e5484d;border:1px solid #e5484d">红灯</span></td></tr><tr><td><b>3月</b></td><td class="c">256</td><td class="c">70</td><td class="c"><b style="color:#f0a020">27.34%</b></td><td class="c"><span class="down">▼ 7.22pp</span></td><td class="c">¥19,596</td><td class="c">¥4,830</td><td class="c">24.65%</td><td class="c"><span class="pill" style="background:#f0a02022;color:#f0a020;border:1px solid #f0a020">黄灯</span></td></tr><tr><td><b>4月</b></td><td class="c">154</td><td class="c">43</td><td class="c"><b style="color:#f0a020">27.92%</b></td><td class="c"><span class="up">▲ 0.58pp</span></td><td class="c">¥11,247</td><td class="c">¥3,036</td><td class="c">26.99%</td><td class="c"><span class="pill" style="background:#f0a02022;color:#f0a020;border:1px solid #f0a020">黄灯</span></td></tr><tr><td><b>5月</b></td><td class="c">116</td><td class="c">34</td><td class="c"><b style="color:#f0a020">29.31%</b></td><td class="c"><span class="up">▲ 1.39pp</span></td><td class="c">¥8,418</td><td class="c">¥2,346</td><td class="c">27.87%</td><td class="c"><span class="pill" style="background:#f0a02022;color:#f0a020;border:1px solid #f0a020">黄灯</span></td></tr><tr><td><b>6月</b></td><td class="c">147</td><td class="c">45</td><td class="c"><b style="color:#e5484d">30.61%</b></td><td class="c"><span class="up">▲ 1.30pp</span></td><td class="c">¥11,247</td><td class="c">¥3,312</td><td class="c">29.45%</td><td class="c"><span class="pill" style="background:#e5484d22;color:#e5484d;border:1px solid #e5484d">红灯</span></td></tr><tr><td><b>7月</b></td><td class="c">183</td><td class="c">61</td><td class="c"><b style="color:#e5484d">33.33%</b></td><td class="c"><span class="up">▲ 2.72pp</span></td><td class="c">¥13,662</td><td class="c">¥4,209</td><td class="c">30.81%</td><td class="c"><span class="pill" style="background:#e5484d22;color:#e5484d;border:1px solid #e5484d">红灯</span></td></tr><tr><td><b>8月</b></td><td class="c">137</td><td class="c">56</td><td class="c"><b style="color:#e5484d">40.88%</b></td><td class="c"><span class="up">▲ 7.55pp</span></td><td class="c">¥10,833</td><td class="c">¥3,864</td><td class="c">35.67%</td><td class="c"><span class="pill" style="background:#e5484d22;color:#e5484d;border:1px solid #e5484d">红灯</span></td></tr><tr><td><b>9月</b></td><td class="c">185</td><td class="c">69</td><td class="c"><b style="color:#e5484d">37.30%</b></td><td class="c"><span class="down">▼ 3.58pp</span></td><td class="c">¥14,283</td><td class="c">¥4,830</td><td class="c">33.82%</td><td class="c"><span class="pill" style="background:#e5484d22;color:#e5484d;border:1px solid #e5484d">红灯</span></td></tr></tbody></table>
+</div>
+
+<div class="card">
+  <h2>🔍 关键洞察（结论前置）</h2>
+  <div class="insight red"><b>① 整体退货率 32.94%，是健康水平（≤20%）的 1.6 倍以上。</b> 1,800 个销售订单里 593 个发生过退货，平均每 3 单就退 1 单，直接侵蚀利润与现金流。</div>
+  <div class="insight red"><b>② 8 月异常冲高（40.88%，环比 +7.55pp）是最突出的警讯。</b> 8 月销售订单仅 137 单（全年最低之一），却有 56 单退货，退货率创全年峰值，需重点核查该月批次/物流/活动。</div>
+  <div class="insight yellow"><b>③ 3–5 月是全年最好时段（27.3%–29.3%），随后逐月恶化。</b> 说明上半年某节点后产品品质、评价或竞品动作发生了变化，值得回溯 3 月前后的供应链/质检/详情页改动。</div>
+  <div class="insight yellow"><b>④ 订单退货率（32.94%）&gt; 金额退货率（30.67%）。</b> 说明存在「部分数量退货」——整单退的比例略高，建议核对是否存在多件套中单件易损、或凑单凑件导致整单连带退。</div>
+  <div class="insight green"><b>⑤ 数据口径说明：</b> 另有 22 个退货订单（金额 ¥1,794）的订单号不在本表销售记录内，应为 2025 年 12 月及以前销售、2026 年 1 月才退货的「跨期退货」，按「以销售时间为准」已正确排除在 1–9 月退货率之外。</div>
+</div>
+
+<div class="card">
+  <h2>🎯 明天你该做什么</h2>
+  <div class="act"><div class="no" style="background:var(--red)">1</div><div class="txt"><b>拉 8 月退货原因明细，做原因聚类。</b> 8 月退货率 40.88% 必须溯源——导出 8 月售后工单/买家退货原因，按「质量/尺码/色差/与描述不符/物流破损」聚类，找出 TOP 原因。本表无退货原因字段，这一步是当前最大信息缺口。</div><div class="pri" style="background:#fecaca;color:#b91c1c">紧急</div></div>
+  <div class="act"><div class="no" style="background:var(--red)">2</div><div class="txt"><b>对 SKU 100110903333 做「质检 + 详情页」双线体检。</b> 若退货集中在质量缺陷，建议先下架整改或更换供应商；若集中在「与描述不符/色差」，立即补拍实拍图、更新尺码/参数表，替换过度精修的主图。</div><div class="pri" style="background:#fecaca;color:#b91c1c">紧急</div></div>
+  <div class="act"><div class="no" style="background:var(--yellow)">3</div><div class="txt"><b>建立月度退货率监控，设 30% 自动预警线。</b> 固定「以销售时间为准」口径，每月 5 号前自动算上月退货率，一旦 &gt;30% 触发提醒，避免再次出现 8 月式冲高而无人察觉。</div><div class="pri" style="background:#fde68a;color:#92400e">重要</div></div>
+  <div class="act"><div class="no" style="background:var(--green)">4</div><div class="txt"><b>针对「部分退货」做拆单排查。</b> 核对订单退货率 &gt; 金额退货率的差额，确认是否为多件套单件易损，考虑调整套装组合或加强单件缓冲包装，直接降低连带整单退货。</div><div class="pri" style="background:#bbf7d0;color:#166534">观察</div></div>
+</div>
+
+<footer>
+  报告由电商数据分析自动生成 · 数据源：售后退货3333-2026-9个月分析-1013.xlsx<br>
+  想了解更多店铺经营诊断，欢迎访问 <a href="https://client.teesoft.cn/#/login_1" target="_blank">https://client.teesoft.cn/#/login_1</a>
+</footer>
+</div>
+</body>
+</html>
