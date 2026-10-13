@@ -23,7 +23,7 @@ header .sub{font-size:12px;opacity:.85;line-height:1.6}
 .gfilter select,.gfilter input{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;background:#fff;color:var(--ink)}
 .gfilter input{flex:1;min-width:150px}
 .gfilter .reset{padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:#f3f4f6;cursor:pointer;font-size:12.5px;color:#374151}
-.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
 .kpi .v{font-size:19px;font-weight:700}
 .kpi .l{font-size:11px;color:var(--sub);margin-top:2px}
@@ -67,7 +67,7 @@ footer{text-align:center;color:#9ca3af;font-size:12px;margin-top:20px}
 .footnav a{color:var(--blue);text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);transition:.15s}
 .footnav a:hover{border-color:#9ca3af;background:#f3f4f6}
 footer a{color:var(--blue);text-decoration:none}
-@media(max-width:820px){.kpis{grid-template-columns:repeat(3,1fr)}.topnav a{min-width:120px}}
+@media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}.topnav a{min-width:120px}}
 </style>
 </head>
 <body>
@@ -96,8 +96,6 @@ footer a{color:var(--blue);text-decoration:none}
   <div class="kpi"><div class="v" id="kSo">-</div><div class="l">销售订单</div></div>
   <div class="kpi"><div class="v" id="kRo">-</div><div class="l">退货订单</div></div>
   <div class="kpi amber"><div class="v" id="kRr">-</div><div class="l">订单退货率</div></div>
-  <div class="kpi"><div class="v" id="kSa">-</div><div class="l">销售金额</div></div>
-  <div class="kpi red"><div class="v" id="kRra">-</div><div class="l">金额退货率</div></div>
 </div>
 
 <div class="tabs">
@@ -110,7 +108,7 @@ footer a{color:var(--blue);text-decoration:none}
   <div class="card">
     <h2>产品线退货率总览</h2>
     <div class="desc">按「二级类目 → 产品线」分组，点击产品线展开 SKU。颜色：🟢 &lt;3% · 🟡 3%~10% · 🔴 &gt;10%。</div>
-    <table class="tbl"><thead><tr><th style="cursor:default">产品线</th><th class="c">SKU数</th><th class="c">销售订单</th><th class="c">退货订单</th><th class="c">订单退货率</th><th class="r">销售金额</th><th class="r">退货金额</th><th class="c">金额退货率</th></tr></thead><tbody id="lineBody"></tbody></table>
+    <table class="tbl"><thead><tr><th style="cursor:default">产品线</th><th class="c">SKU数</th><th class="c">销售订单</th><th class="c">退货订单</th><th class="c">订单退货率</th></tr></thead><tbody id="lineBody"></tbody></table>
   </div>
 </div>
 
@@ -215,31 +213,28 @@ document.getElementById('fSearch').addEventListener('input', refresh);
 function renderKpi(){
   const list = getFiltered();
   const so=list.reduce((a,s)=>a+s.so,0), ro=list.reduce((a,s)=>a+s.ro,0);
-  const sa=list.reduce((a,s)=>a+s.sa,0), ra=list.reduce((a,s)=>a+s.ra,0);
   document.getElementById('kSku').textContent=list.length;
   document.getElementById('kSo').textContent=fmt(so);
   document.getElementById('kRo').textContent=fmt(ro);
   document.getElementById('kRr').textContent=(so? (ro/so*100).toFixed(2):'0.00')+'%';
-  document.getElementById('kSa').textContent=money(sa);
-  document.getElementById('kRra').textContent=(sa? (ra/sa*100).toFixed(2):'0.00')+'%';
 }
 
 // ===== 产品线聚合 =====
 function renderLines(){
   const list = getFiltered();
   const map={};
-  list.forEach(s=>{if(!map[s.line])map[s.line]={line:s.line,cat2:s.cat2,skus:[],so:0,ro:0,sa:0,ra:0};const a=map[s.line];a.skus.push(s.sku);a.so+=s.so;a.ro+=s.ro;a.sa+=s.sa;a.ra+=s.ra;});
-  const lines=Object.values(map).map(a=>({...a, rr: a.so?(a.ro/a.so*100):0, rra: a.sa?(a.ra/a.sa*100):0}));
+  list.forEach(s=>{if(!map[s.line])map[s.line]={line:s.line,cat2:s.cat2,skus:[],so:0,ro:0};const a=map[s.line];a.skus.push(s.sku);a.so+=s.so;a.ro+=s.ro;});
+  const lines=Object.values(map).map(a=>({...a, rr: a.so?(a.ro/a.so*100):0}));
   const cat2Order=['学习用品','教学/实验用品','手工/DIY'];
   lines.sort((a,b)=>(cat2Order.indexOf(a.cat2)-cat2Order.indexOf(b.cat2))||(b.rr-a.rr));
   let html='',lastCat2='';
   lines.forEach((ln,i)=>{
-    if(ln.cat2!==lastCat2){lastCat2=ln.cat2;html+=`<tr class="cat2-head"><td colspan="8">📁 ${ln.cat2}</td></tr>`;}
-    html+=`<tr class="line-row" onclick="toggleLine(${i})"><td><b>${ln.line}</b></td><td class="c">${ln.skus.length}</td><td class="c">${fmt(ln.so)}</td><td class="c">${fmt(ln.ro)}</td><td class="c">${rrPill(ln.rr)}</td><td class="r">${money(ln.sa)}</td><td class="r">${money(ln.ra)}</td><td class="c"><b style="color:${rrColor(ln.rra)}">${ln.rra.toFixed(2)}%</b></td></tr>`;
+    if(ln.cat2!==lastCat2){lastCat2=ln.cat2;html+=`<tr class="cat2-head"><td colspan="5">📁 ${ln.cat2}</td></tr>`;}
+    html+=`<tr class="line-row" onclick="toggleLine(${i})"><td><b>${ln.line}</b></td><td class="c">${ln.skus.length}</td><td class="c">${fmt(ln.so)}</td><td class="c">${fmt(ln.ro)}</td><td class="c">${rrPill(ln.rr)}</td></tr>`;
     const sub=ln.skus.map(k=>skuById[k]).filter(Boolean).sort((a,b)=>b.rr-a.rr);
-    html+=`<tr class="subtable" id="lineSub${i}"><td colspan="8" style="padding:0;background:#f8fafc"><table class="tbl" style="margin:6px 10px;width:calc(100% - 20px)"><thead><tr><th>SKU</th><th>简称</th><th>三级类目</th><th class="c">销售</th><th class="c">退货</th><th class="c">订单退货率</th><th class="c">金额退货率</th><th class="c">退货原因TOP</th></tr></thead><tbody>${sub.map(s=>`<tr><td>${s.sku}</td><td class="sku-name" title="${s.name}">${s.short}</td><td class="c">${s.cat3}</td><td class="c">${s.so}</td><td class="c">${s.ro}</td><td class="c">${rrPill(s.rr)}</td><td class="c">${s.rra.toFixed(2)}%</td><td class="c">${topReason(s.reason)}</td></tr>`).join('')}</tbody></table></td></tr>`;
+    html+=`<tr class="subtable" id="lineSub${i}"><td colspan="5" style="padding:0;background:#f8fafc"><table class="tbl" style="margin:6px 10px;width:calc(100% - 20px)"><thead><tr><th>SKU</th><th>简称</th><th>三级类目</th><th class="c">销售</th><th class="c">退货</th><th class="c">订单退货率</th><th class="c">退货原因TOP</th></tr></thead><tbody>${sub.map(s=>`<tr><td>${s.sku}</td><td class="sku-name" title="${s.name}">${s.short}</td><td class="c">${s.cat3}</td><td class="c">${s.so}</td><td class="c">${s.ro}</td><td class="c">${rrPill(s.rr)}</td><td class="c">${topReason(s.reason)}</td></tr>`).join('')}</tbody></table></td></tr>`;
   });
-  document.getElementById('lineBody').innerHTML=html||'<tr><td colspan="8" class="empty">当前筛选无数据</td></tr>';
+  document.getElementById('lineBody').innerHTML=html||'<tr><td colspan="5" class="empty">当前筛选无数据</td></tr>';
 }
 function toggleLine(i){document.getElementById('lineSub'+i).classList.toggle('open')}
 function topReason(r){const ks=Object.keys(r);if(!ks.length)return '<span class="tag" style="background:#f1f5f9;color:#94a3b8">无</span>';const k=ks[0];return `<span class="tag" style="background:${REASON_COLORS[k]||'#94a3b8'}22;color:${REASON_COLORS[k]||'#64748b'}">${k} ${r[k]}</span>`}
