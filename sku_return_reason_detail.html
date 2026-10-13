@@ -22,6 +22,17 @@ header .sub{font-size:12.5px;opacity:.85;line-height:1.7}
 .gfilter select,.gfilter input{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;background:#fff;color:var(--ink)}
 .gfilter input{flex:1;min-width:150px}
 .gfilter .reset{padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:#f3f4f6;cursor:pointer;font-size:12.5px;color:#374151}
+/* 多选下拉 */
+.ms{position:relative}
+.ms-btn{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;background:#fff;color:var(--ink);cursor:pointer;min-width:160px;text-align:left;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-btn:hover{border-color:#9ca3af}
+.ms-btn.active{border-color:var(--blue);color:var(--blue);font-weight:600}
+.ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:20;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 8px 24px rgba(15,23,42,.16);padding:8px;min-width:200px;max-height:290px;overflow:auto}
+.ms-panel.open{display:block}
+.ms-panel .ms-ops{display:flex;gap:14px;border-bottom:1px solid var(--line);padding:2px 6px 8px;margin-bottom:6px}
+.ms-panel .ms-ops a{font-size:11.5px;color:var(--blue);cursor:pointer;font-weight:600}
+.ms-panel label{display:flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 6px;border-radius:6px;cursor:pointer;color:var(--ink);white-space:nowrap}
+.ms-panel label:hover{background:#f3f4f6}
 .filter-note{font-size:11.5px;color:#9ca3af;margin-bottom:12px;padding-left:2px}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
@@ -81,12 +92,16 @@ footer a{color:var(--blue);text-decoration:none}
 <div class="gfilter">
   <label>品牌</label><select id="fBrand"></select>
   <label>类目</label><select id="fCat2"></select>
-  <label title="按退货单创建月份筛选">退货月份</label><select id="fTime"></select>
+  <label title="按退货单创建月份筛选（可多选）">退货月份</label>
+  <div class="ms" id="msTime">
+    <button type="button" class="ms-btn" id="msBtn" onclick="toggleMs(event)">全部退货月份 ▾</button>
+    <div class="ms-panel" id="msPanel"></div>
+  </div>
   <label>产品线</label><select id="fLine"></select>
   <input id="fSearch" placeholder="搜索 SKU 编码 / 简称 / 名称...">
   <button class="reset" onclick="resetFilter()">重置</button>
 </div>
-<div class="filter-note">筛选「退货月份」后，问题明细按该月退货单重算；退货率取同月销售口径。</div>
+<div class="filter-note">退货月份支持<b>多选</b>：勾选 N 个月后，问题明细合并这 N 个月的退货单重算，退货率按这些月份的销售/退货汇总口径计算。</div>
 
 <div class="kpis">
   <div class="kpi"><div class="v">172</div><div class="l">有退货的 SKU</div></div>
@@ -129,45 +144,77 @@ const DATA_LEVEL={"倍数不足/虚标":"hard","成像不清晰/模糊":"hard","
 const FEEDBACK_SET = new Set(Object.keys(DATA_LEVEL));
 const SUB_SET = new Set(['无理由退货','买多/买错/不想要','不喜欢/不合适','无明确描述','平台主动介入']);
 let VIEW = {};
-let CUR_MONTH = '';
+let CUR_MONTHS = [];
 
-const LABEL = {'fBrand':'品牌','fCat2':'类目','fTime':'退货月份','fLine':'产品线'};
+const LABEL = {'fBrand':'品牌','fCat2':'类目','fLine':'产品线'};
 function fillSel(id, arr){
   document.getElementById(id).innerHTML = '<option value="">全部'+LABEL[id]+'</option>' + arr.map(v=>`<option>${v}</option>`).join('');
+}
+/* ---- 退货月份多选 ---- */
+function buildMonths(){
+  const opts = (DATA.ret_months||[]).map(m=>`<label><input type="checkbox" class="ms-cb" value="${m}" onchange="render()"> ${m}</label>`).join('');
+  document.getElementById('msPanel').innerHTML =
+    '<div class="ms-ops"><a onclick="checkAllMonths(true)">全选</a><a onclick="checkAllMonths(false)">清空</a></div>' + opts;
+}
+function checkAllMonths(v){
+  document.querySelectorAll('#msPanel .ms-cb').forEach(cb=>cb.checked=v);
+  render();
+}
+function toggleMs(e){
+  if(e) e.stopPropagation();
+  document.getElementById('msPanel').classList.toggle('open');
+}
+function getMonths(){
+  return [...document.querySelectorAll('#msPanel .ms-cb')].filter(cb=>cb.checked).map(cb=>cb.value).sort();
+}
+function msLabel(){
+  const ms=getMonths();
+  if(!ms.length) return '全部退货月份';
+  if(ms.length===1) return ms[0];
+  return ms.length+' 个月：'+ms.map(m=>m.slice(5)).join('/');
 }
 function buildFilter(){
   fillSel('fBrand', [...new Set(DATA.items.map(x=>x.brand).filter(Boolean))].sort());
   fillSel('fCat2', [...new Set(DATA.items.map(x=>x.cat2).filter(Boolean))].sort());
   fillSel('fLine', [...new Set(DATA.items.map(x=>x.line).filter(Boolean))].sort());
-  fillSel('fTime', DATA.ret_months||[]);
-  ['fBrand','fCat2','fLine','fTime'].forEach(id=>document.getElementById(id).onchange=render);
+  buildMonths();
+  ['fBrand','fCat2','fLine'].forEach(id=>document.getElementById(id).onchange=render);
   document.getElementById('fSearch').oninput=render;
   document.getElementById('fOnlyFb').onchange=render;
   document.getElementById('fHighRate').onchange=render;
+  document.addEventListener('click', e=>{
+    if(!e.target.closest('#msTime')) document.getElementById('msPanel').classList.remove('open');
+  });
 }
 function resetFilter(){
-  ['fBrand','fCat2','fTime','fLine'].forEach(id=>document.getElementById(id).value='');
+  ['fBrand','fCat2','fLine'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fSearch').value='';
-  render();
+  document.getElementById('msPanel').classList.remove('open');
+  checkAllMonths(false);
 }
 function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function allRecords(x){return [].concat(...x.reasons.map(r=>r.records||[]));}
-function computeView(x, month){
-  if(!month){ return {reasons:x.reasons, ret:x.ret_orders, rr:x.rr_order, desc:x.desc_total}; }
-  const recs = allRecords(x).filter(r=>r.t && r.t.slice(0,7)===month);
+function computeView(x, months){
+  if(!months || !months.length){ return {reasons:x.reasons, ret:x.ret_orders, rr:x.rr_order, desc:x.desc_total}; }
+  const set = new Set(months);
+  const recs = allRecords(x).filter(r=>r.t && set.has(r.t.slice(0,7)));
   const cnt={}, byCat={};
   recs.forEach(r=>{const c=r.c||'无明确描述'; cnt[c]=(cnt[c]||0)+1; (byCat[c]=byCat[c]||[]).push(r);});
   const tot = recs.length;
   const reasons = Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([name,c])=>({name, count:c, pct: tot?(Math.round(c/tot*1000)/10):0, records:byCat[name]}));
-  const m = x.month && x.month[month];
-  return {reasons, ret: m? m.ret_orders:0, rr: m? m.rr_order:null, desc:tot};
+  let so=0, ro=0;
+  months.forEach(m=>{ const d=x.month && x.month[m]; if(d){ so+=d.sales_orders||0; ro+=d.ret_orders||0; } });
+  const rr = so>0 ? Math.round(ro/so*1000)/10 : null;
+  return {reasons, ret:ro, rr, desc:tot};
 }
 function render(){
   const b=document.getElementById('fBrand').value;
   const c=document.getElementById('fCat2').value;
   const ln=document.getElementById('fLine').value;
-  const mo=document.getElementById('fTime').value;
-  CUR_MONTH = mo;
+  const mos=getMonths();
+  CUR_MONTHS = mos;
+  document.getElementById('msBtn').textContent = msLabel() + ' ▾';
+  document.getElementById('msBtn').classList.toggle('active', mos.length>0);
   const q=document.getElementById('fSearch').value.trim().toLowerCase();
   const onlyFb=document.getElementById('fOnlyFb').checked;
   const highRate=document.getElementById('fHighRate').checked;
@@ -178,15 +225,15 @@ function render(){
   );
 
   VIEW={};
-  let rows = list.map(x=>{ const v=computeView(x, mo); VIEW[x.sku]=v; return Object.assign({}, x, {_v:v}); });
+  let rows = list.map(x=>{ const v=computeView(x, mos); VIEW[x.sku]=v; return Object.assign({}, x, {_v:v}); });
 
-  if(mo){ rows = rows.filter(x=> x._v.desc>0 || (x._v.rr!=null && x._v.rr>0)); }
+  if(mos.length){ rows = rows.filter(x=> x._v.desc>0 || (x._v.rr!=null && x._v.rr>0)); }
 
   rows = rows.filter(x=>{
     const fb = x._v.reasons.filter(r=>FEEDBACK_SET.has(r.name));
     x._fb = fb;
     if(onlyFb && fb.length===0) return false;
-    if(highRate){ const eff = (mo? x._v.rr : x.rr_order); if(!(eff>5)) return false; }
+    if(highRate){ const eff = (mos.length? x._v.rr : x.rr_order); if(!(eff>5)) return false; }
     return true;
   });
 
@@ -214,14 +261,14 @@ function card(x){
   const subNames=sub.map(r=>r.name+r.count).join(', ');
   const rr = (v.rr!=null? v.rr : x.rr_order);
   const rateCls=rr>=15?'#dc2626':(rr>=8?'#ea580c':'#374151');
-  const rrLabel = CUR_MONTH? ('退货率('+CUR_MONTH+')') : '退货率';
+  const rrLabel = CUR_MONTHS.length? ('退货率('+(CUR_MONTHS.length===1?CUR_MONTHS[0]:CUR_MONTHS.length+'月合计')+')') : '退货率';
   return `<div class="sku-card">
     <div class="sku-head">
       <span class="sku-name">${esc(x.short)}</span>
       <span class="sku-tag">${esc(x.line)}</span>
       <span class="sku-tag">${esc(x.brand)}</span>
       <span class="rate" style="color:${rateCls}">${rrLabel} ${rr==null?'—':rr}%</span>
-      <span class="sku-meta">${CUR_MONTH?'该月':'累计'}退货 ${v.ret} 单 · 反馈 ${v.desc} 条</span>
+      <span class="sku-meta">${CUR_MONTHS.length?'选定月':'累计'}退货 ${v.ret} 单 · 反馈 ${v.desc} 条</span>
     </div>
     <div class="sku-meta" style="margin-bottom:6px">${esc(x.sku)} · ${esc(x.name)}</div>
     ${fbHtml}
