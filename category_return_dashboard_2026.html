@@ -23,6 +23,18 @@ header .sub{font-size:12px;opacity:.85;line-height:1.6}
 .gfilter select,.gfilter input{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;background:#fff;color:var(--ink)}
 .gfilter input{flex:1;min-width:150px}
 .gfilter .reset{padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:#f3f4f6;cursor:pointer;font-size:12.5px;color:#374151}
+/* 月度多选下拉 */
+.ms{position:relative}
+.ms-btn{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;background:#fff;color:var(--ink);cursor:pointer;min-width:150px;text-align:left;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-btn:hover{border-color:#9ca3af}
+.ms-btn.active{border-color:var(--blue);color:var(--blue);font-weight:600}
+.ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 8px 24px rgba(15,23,42,.16);padding:8px;min-width:210px;max-height:300px;overflow:auto}
+.ms-panel.open{display:block}
+.ms-panel .ms-ops{display:flex;gap:14px;border-bottom:1px solid var(--line);padding:2px 6px 8px;margin-bottom:6px}
+.ms-panel .ms-ops a{font-size:11.5px;color:var(--blue);cursor:pointer;font-weight:600}
+.ms-panel label{display:flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 6px;border-radius:6px;cursor:pointer;color:var(--ink);white-space:nowrap}
+.ms-panel label:hover{background:#f3f4f6}
+.filter-note{font-size:11.5px;color:#9ca3af;margin:-6px 0 12px 2px}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
 .kpi .v{font-size:19px;font-weight:700}
@@ -85,11 +97,16 @@ footer a{color:var(--blue);text-decoration:none}
 <div class="gfilter">
   <label>品牌</label><select id="fBrand"><option value="">全部</option><option>星微光学</option><option>金甲库</option></select>
   <label>类目</label><select id="fCat2"><option value="">全部</option><option>学习用品</option><option>手工/DIY</option><option>教学/实验用品</option></select>
-  <label>时间</label><select id="fTime"><option value="">全部（1-9月汇总）</option><option value="2025-09">2025-09</option><option value="2025-11">2025-11</option><option value="2025-12">2025-12</option><option value="2026-01">2026-01</option><option value="2026-02">2026-02</option><option value="2026-03">2026-03</option><option value="2026-04">2026-04</option><option value="2026-05">2026-05</option><option value="2026-06">2026-06</option><option value="2026-07">2026-07</option><option value="2026-08">2026-08</option></select>
+  <label title="按销售月份筛选（可多选）">销售月份</label>
+  <div class="ms" id="msTime">
+    <button type="button" class="ms-btn" id="msBtn" onclick="toggleMs(event)">全部（汇总）▾</button>
+    <div class="ms-panel" id="msPanel"></div>
+  </div>
   <label>产品线</label><select id="fLine"><option value="">全部</option><option>DIY宋锦</option><option>DIY节日-端午</option><option>PH试纸</option><option>扭扭棒</option><option>拼豆-单笔</option><option>拼豆-套装</option><option>拼豆-工具包</option><option>拼豆-布</option><option>拼豆-板</option><option>拼豆-熨斗</option><option>拼豆-自动笔</option><option>拼豆-补充-单色</option><option>拼豆-补充-套装</option><option>拼豆-补充-罐</option><option>拼豆-贴纸</option><option>拼豆工具</option><option>放大镜</option><option>放大镜收纳袋</option><option>放大镜鉴定</option><option>放大镜阅读</option><option>放大阅读镜</option><option>显微镜</option><option>未分类</option><option>标本</option><option>沙包</option><option>滴管</option><option>物理实验箱</option><option>生物显微镜</option><option>生物显微镜配件</option><option>电子显微镜</option><option>窗花</option><option>红领巾</option><option>载玻片</option><option>载玻片套装</option></select>
   <input id="fSearch" placeholder="搜索 SKU 编码 / 简称 / 名称...">
   <button class="reset" onclick="resetFilter()">重置</button>
 </div>
+<div class="filter-note">销售月份支持<b>多选</b>：勾选 N 个月后，退货率按这些月份的销售/退货汇总口径重算，退货原因同步合并；不勾选=全周期汇总。</div>
 
 <div class="kpis">
   <div class="kpi"><div class="v" id="kSku">-</div><div class="l">SKU 数</div></div>
@@ -170,14 +187,33 @@ function switchTab(i,el){document.querySelectorAll('.tab').forEach(t=>t.classLis
 const skuById=Object.fromEntries(DATA.skus.map(s=>[s.sku,s]));
 
 // ===== 全局筛选 =====
+// ---- 销售月份多选 ----
+function buildMonths(){
+  const opts=(DATA.months||[]).map(m=>`<label><input type="checkbox" class="ms-cb" value="${m}" onchange="refresh()"> ${m}</label>`).join('');
+  document.getElementById('msPanel').innerHTML='<div class="ms-ops"><a onclick="checkAllMonths(true)">全选</a><a onclick="checkAllMonths(false)">清空</a></div>'+opts;
+}
+function checkAllMonths(v){document.querySelectorAll('#msPanel .ms-cb').forEach(cb=>cb.checked=v);refresh();}
+function toggleMs(e){if(e)e.stopPropagation();document.getElementById('msPanel').classList.toggle('open');}
+function getMonths(){return [...document.querySelectorAll('#msPanel .ms-cb')].filter(cb=>cb.checked).map(cb=>cb.value).sort();}
+function msLabel(){
+  const ms=getMonths();
+  if(!ms.length) return '全部（汇总）';
+  if(ms.length===1) return ms[0];
+  return ms.length+' 个月：'+ms.map(m=>m.slice(2)).join('/');
+}
 function curFilter(){
   return {
     brand: document.getElementById('fBrand').value,
     cat2: document.getElementById('fCat2').value,
-    time: document.getElementById('fTime').value,
+    months: getMonths(),
     line: document.getElementById('fLine').value,
     q: document.getElementById('fSearch').value.trim().toLowerCase(),
   };
+}
+function mergeReason(s, ms){
+  const rm={};
+  ms.forEach(m=>{const r=s.reason_month[m]; if(r)Object.entries(r).forEach(([k,v])=>rm[k]=(rm[k]||0)+v);});
+  return rm;
 }
 function getFiltered(){
   const f = curFilter();
@@ -187,28 +223,36 @@ function getFiltered(){
     (!f.line || s.line===f.line) &&
     (!f.q || s.sku.toLowerCase().includes(f.q) || s.short.toLowerCase().includes(f.q) || s.name.toLowerCase().includes(f.q))
   );
-  // 时间筛选：重算退货率（退货原因也切到对应月份）
-  if (f.time) {
+  // 销售月份筛选（可多选）：按所选月份汇总重算退货率，退货原因同步合并
+  if (f.months && f.months.length) {
+    const ms = f.months;
     list = list.map(s => {
-      const m = s.month[f.time] || {};
-      const rm = s.reason_month[f.time] || {};
-      return {...s,
-        so: m.sales_orders||0, ro: m.ret_orders||0, rr: m.rr_order||0,
-        sa: m.sales_amt||0, ra: m.ret_amt||0, rra: m.rr_amt||0,
-        reason: rm, reason_month: s.reason_month, month: s.month
+      let so=0, ro=0, sa=0, ra=0;
+      ms.forEach(m=>{const d=s.month[m]; if(d){so+=d.sales_orders||0; ro+=d.ret_orders||0; sa+=d.sales_amt||0; ra+=d.ret_amt||0;}});
+      return {...s, so, ro, sa, ra,
+        rr: so? ro/so*100 : 0,
+        rra: sa? ra/sa*100 : 0,
+        reason: mergeReason(s, ms), reason_month: s.reason_month, month: s.month
       };
     }).filter(s => s.so > 0);
   }
   return list;
 }
 function resetFilter(){
-  ['fBrand','fCat2','fTime','fLine'].forEach(id=>document.getElementById(id).value='');
+  ['fBrand','fCat2','fLine'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fSearch').value='';
-  refresh();
+  document.getElementById('msPanel').classList.remove('open');
+  checkAllMonths(false);
 }
-function refresh(){renderKpi();renderLines();renderSku();renderReason();}
-['fBrand','fCat2','fTime','fLine'].forEach(id=>document.getElementById(id).onchange=refresh);
+function refresh(){
+  document.getElementById('msBtn').textContent = msLabel() + ' ▾';
+  document.getElementById('msBtn').classList.toggle('active', getMonths().length>0);
+  renderKpi();renderLines();renderSku();renderReason();
+}
+buildMonths();
+['fBrand','fCat2','fLine'].forEach(id=>document.getElementById(id).onchange=refresh);
 document.getElementById('fSearch').addEventListener('input', refresh);
+document.addEventListener('click', e=>{if(!e.target.closest('#msTime'))document.getElementById('msPanel').classList.remove('open');});
 
 function renderKpi(){
   const list = getFiltered();
