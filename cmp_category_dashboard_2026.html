@@ -127,6 +127,34 @@ footer{text-align:center;color:#9ca3af;font-size:12px;margin-top:20px}
 .footnav a:hover{border-color:#9ca3af;background:#f3f4f6}
 footer a{color:var(--blue);text-decoration:none}
 @media(max-width:880px){.timebar{grid-template-columns:1fr}.cmp{grid-template-columns:1fr}.cmp .mid{flex-direction:row;padding:8px}.topnav a{min-width:120px}.ps-sum{grid-template-columns:1fr 1fr}.ps-name{flex:0 0 120px}.ps-num{flex:0 0 100px}}
+
+/* ===== 全站统一导航（由 ui_nav.py 注入，勿在页面内重复定义） ===== */
+.footnav{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.footnav a{color:#2563eb;text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 14px;
+  border:1px solid #e7eaf0;border-radius:8px;background:#fff;transition:.15s;white-space:nowrap}
+.footnav a:hover{border-color:#9ca3af;background:#f3f4f6}
+.footnav a.hot{background:#fff7ed;border-color:#fdba74;color:#c2410c}
+.footnav a.hot::before{content:'⚡';margin-right:3px}
+.footnav a.hot:hover{background:#ffedd5;border-color:#fb923c}
+.footnav span.hot{display:inline-block;background:#fff7ed;border:1px solid #fdba74;color:#c2410c;
+  font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:8px}
+.footnav span.hot::before{content:'⚡';margin-right:3px}
+
+.botbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;
+  background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-top:1px solid #e5e7eb;box-shadow:0 -3px 16px rgba(15,23,42,.07);
+  padding:5px 8px calc(5px + env(safe-area-inset-bottom,0px))}
+.botbar-in{display:flex;width:100%;max-width:860px;gap:4px}
+.botbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 4px;
+  border-radius:9px;text-decoration:none;color:#6b7280;font-size:11.5px;font-weight:600;
+  line-height:1.3;white-space:nowrap;transition:.15s}
+.botbar a .bi{font-size:16px;line-height:1.15}
+.botbar a:hover{background:#f3f4f6;color:#374151}
+.botbar a.on{background:#eef1f7;color:#111827}
+.botbar a.on .bi{transform:translateY(-1px)}
+@media(max-width:560px){.botbar a{font-size:10.5px}.botbar a .bi{font-size:15px}}
+@media print{.botbar{display:none}}
+body{padding-bottom:86px}
 </style>
 </head>
 <body>
@@ -260,11 +288,7 @@ footer a{color:var(--blue);text-decoration:none}
 </div>
 
 <footer>
-  <div class="footnav">
-    <a href="cmp_monthly_trend_2026.html">📈 月度趋势对比</a>
-    <a href="category_return_dashboard_2026.html">📦 原版类目看板</a>
-    <a href="sku_return_reason_detail.html">🔍 SKU 原因深度</a>
-  </div>
+  <div class="footnav"><a class="hot" href="return_reason_analysis_2026.html" title="快捷入口：SKU 100110903333 单 SKU 退货原因深度分析">100110903333退货分析</a><a href="category_return_dashboard_2026.html">📦 原版类目看板</a><a href="cmp_category_dashboard_2026.html">⚖️ 双维度对比</a><a href="cmp_monthly_trend_2026.html">📈 月度趋势</a><a href="sku_return_reason_detail.html">🔍 SKU 原因深度</a><a href="return_rate_monthly_2026.html">📊 原版月度退货率</a></div>
   双维度对比看板 · 结算单维度：京东结算单（滚动结算，滞后约 1 个月）· 日维度：京东商智日销 + 销退单明细（剔除关闭单）<br>
   想了解更多店铺经营诊断，欢迎访问 <a href="https://client.teesoft.cn/#/login_1" target="_blank">https://client.teesoft.cn/#/login_1</a>
 </footer>
@@ -703,5 +727,6 @@ document.getElementById('dTo').addEventListener('change', refresh);
 document.addEventListener('click', e=>{ if(!e.target.closest('#msTime')) document.getElementById('msPanel').classList.remove('open'); });
 refresh();
 </script>
+<nav class="botbar" id="botbar" aria-label="页面导航"><div class="botbar-in"><a href="category_return_dashboard_2026.html"><span class="bi">📦</span>类目看板</a><a href="cmp_category_dashboard_2026.html" class="on"><span class="bi">⚖️</span>双维度对比</a><a href="cmp_monthly_trend_2026.html"><span class="bi">📈</span>月度趋势</a><a href="sku_return_reason_detail.html"><span class="bi">🔍</span>SKU原因</a></div></nav>
 </body>
 </html>
