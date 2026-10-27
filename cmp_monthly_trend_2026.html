@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>双维度月度趋势对比 · 结算单 vs 日销售</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1f2430;--sub:#6b7280;--line:#e7eaf0;--red:#dc2626;--orange:#ea580c;--yellow:#f59e0b;--green:#16a34a;--blue:#2563eb;--violet:#7c3aed}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;padding:16px 16px 60px}
+.wrap{max-width:1240px;margin:0 auto}
+header{background:linear-gradient(135deg,#1f2430,#3a4256);color:#fff;border-radius:14px;padding:20px 26px;margin-bottom:12px}
+header h1{font-size:20px;font-weight:700;margin-bottom:4px}
+header .sub{font-size:12px;opacity:.85;line-height:1.7}
+.topnav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.topnav a{flex:1;min-width:150px;text-align:center;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;color:var(--sub);text-decoration:none;transition:.15s;white-space:nowrap}
+.topnav a.active{background:#1f2430;color:#fff;border-color:#1f2430}
+.topnav a:hover{border-color:#9ca3af}
+.timebar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.tbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 14px;border-left:4px solid var(--blue)}
+.tbox.daily{border-left-color:var(--violet)}
+.tbox .th{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.tbox .th b{font-size:13px}
+.tbox .th .cap{font-size:11px;border-radius:20px;padding:1px 8px;font-weight:600}
+.cap.lag{background:#fef3c7;color:#92400e}.cap.now{background:#ede9fe;color:#6d28d9}
+.tbox .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tbox select,.tbox input[type=date]{padding:5px 7px;border:1px solid var(--line);border-radius:7px;font-size:12px;background:#fff;color:var(--ink)}
+.qbtn{padding:5px 9px;border:1px solid var(--line);border-radius:7px;background:#f9fafb;cursor:pointer;font-size:11.5px;color:#374151}
+.qbtn:hover{background:#eef2ff;border-color:#c7d2fe;color:#3730a3}
+.cmp{display:grid;grid-template-columns:1fr 78px 1fr;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.cmp .side{padding:14px 16px}
+.cmp .side.l{background:linear-gradient(180deg,#f8fafc,#fff);border-right:1px solid var(--line)}
+.cmp .side.r{background:linear-gradient(180deg,#faf5ff,#fff);border-left:1px solid var(--line)}
+.cmp .side .h{font-size:12.5px;font-weight:700;margin-bottom:2px}
+.cmp .side .p{font-size:11px;color:var(--sub);margin-bottom:9px}
+.cmp .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.cmp .kv .v{font-size:18px;font-weight:700}
+.cmp .kv .l{font-size:11px;color:var(--sub)}
+.cmp .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--sub);gap:3px}
+.cmp .mid .d{font-size:13px;font-weight:700;padding:2px 6px;border-radius:6px;background:#f1f5f9}
+.note{font-size:11.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:9px 12px;margin-bottom:12px;line-height:1.65}
+.note b{color:#b45309}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.card h2{font-size:14px;font-weight:700;margin-bottom:3px}
+.card .desc{font-size:11.5px;color:var(--sub);margin-bottom:10px}
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tbl thead th{background:#f3f4f6;color:#374151;font-weight:600;padding:7px 8px;border-bottom:2px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+table.tbl td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.tbl tbody tr:hover{background:#fafbfc}
+.c{text-align:center}
+.pill{font-size:11px;border-radius:20px;padding:2px 8px;font-weight:600}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--sub);margin:8px 0}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
+svg{width:100%;height:auto;display:block}
+.empty{text-align:center;color:#9ca3af;padding:24px;font-size:13px}
+footer{text-align:center;color:#9ca3af;font-size:12px;margin-top:20px}
+.footnav{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.footnav a{color:var(--blue);text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 14px;border:1px solid var(--line);border-radius:8px;background:var(--card);transition:.15s}
+.footnav a:hover{border-color:#9ca3af;background:#f3f4f6}
+footer a{color:var(--blue);text-decoration:none}
+@media(max-width:880px){.timebar{grid-template-columns:1fr}.cmp{grid-template-columns:1fr}.cmp .mid{flex-direction:row;padding:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>📈 双维度月度趋势对比</h1>
+  <div class="sub">🧾 结算单维度（销售月份归集 · 滞后约 1 个月） × ⚡ 日销售维度（按日归集 · 即时）<br>
+  结算单：2026-01 ~ 2026-09 · 日维度：2026-07-29 ~ 2026-10-26 · 日数据更新至 2026-10-26（销量）/ 2026-10-27（退货）</div>
+</header>
+
+<nav class="topnav">
+  <a href="cmp_category_dashboard_2026.html">⚖️ 双维度对比看板</a>
+  <a class="active">📈 月度趋势对比</a>
+  <a href="return_rate_monthly_2026.html">📦 原版（单 SKU 月度）</a>
+</nav>
+
+<div class="timebar">
+  <div class="tbox">
+    <div class="th"><b>🧾 结算单维度</b><span class="cap lag">滞后约 1 个月</span></div>
+    <div class="row">
+      <select id="sFrom"><option value="2025-09">2025-09</option><option value="2025-11">2025-11</option><option value="2025-12">2025-12</option><option value="2026-01" selected>2026-01</option><option value="2026-02">2026-02</option><option value="2026-03">2026-03</option><option value="2026-04">2026-04</option><option value="2026-05">2026-05</option><option value="2026-06">2026-06</option><option value="2026-07">2026-07</option><option value="2026-08">2026-08</option><option value="2026-09">2026-09</option></select><span style="font-size:12px;color:#9ca3af">→</span>
+      <select id="sTo"><option value="2025-09">2025-09</option><option value="2025-11">2025-11</option><option value="2025-12">2025-12</option><option value="2026-01">2026-01</option><option value="2026-02">2026-02</option><option value="2026-03">2026-03</option><option value="2026-04">2026-04</option><option value="2026-05">2026-05</option><option value="2026-06">2026-06</option><option value="2026-07">2026-07</option><option value="2026-08">2026-08</option><option value="2026-09" selected>2026-09</option></select>
+      <button class="qbtn" onclick="sAll()">全部</button>
+      <button class="qbtn" onclick="sRecent(6)">近6个月</button>
+      <button class="qbtn" onclick="sRecent(3)">近3个月</button>
+    </div>
+  </div>
+  <div class="tbox daily">
+    <div class="th"><b>⚡ 日销售维度</b><span class="cap now">即时</span></div>
+    <div class="row">
+      <input type="date" id="dFrom" min="2026-07-01" max="2026-10-27" value="2026-07-29">
+      <span style="font-size:12px;color:#9ca3af">→</span>
+      <input type="date" id="dTo" min="2026-07-01" max="2026-10-27" value="2026-10-26">
+      <button class="qbtn" onclick="dQuick(7)">近7天</button>
+      <button class="qbtn" onclick="dQuick(30)">近30天</button>
+      <button class="qbtn" onclick="dQuick(90)">近90天</button>
+      <button class="qbtn" onclick="dAll()">全部</button>
+    </div>
+  </div>
+</div>
+
+<div class="cmp">
+  <div class="side l">
+    <div class="h">🧾 结算单维度</div>
+    <div class="p">所选月份区间汇总 · 订单级精确</div>
+    <div class="kv">
+      <div><div class="v" id="sSo">-</div><div class="l">销售订单</div></div>
+      <div><div class="v" id="sRo">-</div><div class="l">退货订单</div></div>
+      <div><div class="v" id="sRr" style="color:var(--blue)">-</div><div class="l">订单退货率</div></div>
+    </div>
+  </div>
+  <div class="mid"><span>差异</span><span class="d" id="dRrDiff">—</span></div>
+  <div class="side r">
+    <div class="h">⚡ 日销售维度</div>
+    <div class="p">所选日期区间汇总 · 单量近似</div>
+    <div class="kv">
+      <div><div class="v" id="dSo">-</div><div class="l">销售单</div></div>
+      <div><div class="v" id="dRo">-</div><div class="l">退货单</div></div>
+      <div><div class="v" id="dRr" style="color:var(--violet)">-</div><div class="l">单量退货率</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="note" id="noteBar"></div>
+
+<div class="card">
+  <h2>📊 月度退货率 · 双维度对照（全周期）</h2>
+  <div class="desc">每根月份两根柱子：蓝 = 结算单维度（以销售月份归集），紫 = 日维度（按自然月）。日维度只有 2026-07 之后有数据（销退单导出范围限制）。<b style="color:#b91c1c">虚线淡蓝柱 = 2026-01 之前，退货还没结算收全，只看销售、不看退货率。</b>淡紫虚线柱 = 日维度首个不完整月（退货只从 2026-07-29 起有记录）。</div>
+  <div class="legend"><span><i style="background:#2563eb"></i>结算单维度</span><span><i style="background:#7c3aed"></i>日销售维度</span><span><i style="background:#dc2626"></i>10% 风险线</span></div>
+  <div id="monthChart"></div>
+</div>
+
+<div class="card">
+  <h2>⚡ 日维度 · 每日退货率（所选日期区间）</h2>
+  <div class="desc">柱 = 当日退货单量÷当日销售单量；紫线 = 7 日移动平均（消除单日波动）；灰虚线 = 区间均值。想知道"今天有没有异常"，看这张图。</div>
+  <div id="dayChart"></div>
+</div>
+
+<div class="card">
+  <h2>📋 月度明细（两个维度并列）</h2>
+  <div class="desc">「覆盖度」= 日维度销售单 ÷ 结算单销售单。&gt;115% 说明结算单还没结完（当月退货率不可信）；「信号」列直接给判断。</div>
+  <table class="tbl"><thead><tr>
+    <th>月份</th>
+    <th class="c" style="background:#eff6ff" onclick="sortBy('so')">结算单 销售</th>
+    <th class="c" style="background:#eff6ff">退货</th>
+    <th class="c" style="background:#eff6ff">退货率</th>
+    <th class="c" style="background:#f5f3ff">日维度 销售</th>
+    <th class="c" style="background:#f5f3ff">退货</th>
+    <th class="c" style="background:#f5f3ff">退货率</th>
+    <th class="c">差异</th><th class="c">覆盖度</th><th class="c">信号</th>
+  </tr></thead><tbody id="monBody"></tbody></table>
+  <div style="font-size:11.5px;color:#9ca3af;margin-top:8px" id="monFoot"></div>
+</div>
+
+<footer>
+  <div class="footnav">
+    <a href="cmp_category_dashboard_2026.html">⚖️ 双维度对比看板</a>
+    <a href="category_return_dashboard_2026.html">📦 原版类目看板</a>
+    <a href="return_rate_monthly_2026.html">📈 原版月度退货率</a>
+  </div>
+  数据源：京东结算单（滚动结算）· 京东商智日销 · 销退单明细（剔除关闭单 326 行 / 重复 19 行）<br>
+  想了解更多店铺经营诊断，欢迎访问 <a href="https://client.teesoft.cn/#/login_1" target="_blank">https://client.teesoft.cn/#/login_1</a>
+</footer>
+</div>
+
+<script>
+const DATA = {"sMonthly":[{"m":"2025-09","so":1,"ro":0},{"m":"2025-11","so":6272,"ro":6},{"m":"2025-12","so":14409,"ro":355},{"m":"2026-01","so":13009,"ro":860},{"m":"2026-02","so":10650,"ro":766},{"m":"2026-03","so":17453,"ro":1197},{"m":"2026-04","so":14614,"ro":885},{"m":"2026-05","so":18130,"ro":1023},{"m":"2026-06","so":16264,"ro":986},{"m":"2026-07","so":18934,"ro":1180},{"m":"2026-08","so":27686,"ro":1505},{"m":"2026-09","so":16579,"ro":942}],"dMonthly":[{"m":"2026-07","so":19120.0,"ro":108,"partial":true},{"m":"2026-08","so":28026.0,"ro":1427,"partial":false},{"m":"2026-09","so":28214.0,"ro":1485,"partial":false},{"m":"2026-10","so":26042.0,"ro":1174,"partial":false}],"dDaily":[{"d":"2026-07-01","so":474.0,"ro":0},{"d":"2026-07-02","so":564.0,"ro":0},{"d":"2026-07-03","so":655.0,"ro":0},{"d":"2026-07-04","so":666.0,"ro":0},{"d":"2026-07-05","so":568.0,"ro":0},{"d":"2026-07-06","so":598.0,"ro":0},{"d":"2026-07-07","so":532.0,"ro":0},{"d":"2026-07-08","so":579.0,"ro":0},{"d":"2026-07-09","so":659.0,"ro":0},{"d":"2026-07-10","so":680.0,"ro":0},{"d":"2026-07-11","so":609.0,"ro":0},{"d":"2026-07-12","so":614.0,"ro":0},{"d":"2026-07-13","so":574.0,"ro":0},{"d":"2026-07-14","so":627.0,"ro":0},{"d":"2026-07-15","so":616.0,"ro":0},{"d":"2026-07-16","so":529.0,"ro":0},{"d":"2026-07-17","so":545.0,"ro":0},{"d":"2026-07-18","so":673.0,"ro":0},{"d":"2026-07-19","so":654.0,"ro":0},{"d":"2026-07-20","so":607.0,"ro":0},{"d":"2026-07-21","so":689.0,"ro":0},{"d":"2026-07-22","so":562.0,"ro":0},{"d":"2026-07-23","so":589.0,"ro":0},{"d":"2026-07-24","so":694.0,"ro":0},{"d":"2026-07-25","so":602.0,"ro":0},{"d":"2026-07-26","so":626.0,"ro":0},{"d":"2026-07-27","so":651.0,"ro":0},{"d":"2026-07-28","so":624.0,"ro":0},{"d":"2026-07-29","so":707.0,"ro":35},{"d":"2026-07-30","so":689.0,"ro":30},{"d":"2026-07-31","so":664.0,"ro":43},{"d":"2026-08-01","so":601.0,"ro":39},{"d":"2026-08-02","so":707.0,"ro":34},{"d":"2026-08-03","so":633.0,"ro":37},{"d":"2026-08-04","so":755.0,"ro":51},{"d":"2026-08-05","so":793.0,"ro":45},{"d":"2026-08-06","so":772.0,"ro":43},{"d":"2026-08-07","so":898.0,"ro":47},{"d":"2026-08-08","so":802.0,"ro":40},{"d":"2026-08-09","so":713.0,"ro":51},{"d":"2026-08-10","so":777.0,"ro":42},{"d":"2026-08-11","so":763.0,"ro":50},{"d":"2026-08-12","so":976.0,"ro":54},{"d":"2026-08-13","so":944.0,"ro":42},{"d":"2026-08-14","so":882.0,"ro":55},{"d":"2026-08-15","so":898.0,"ro":65},{"d":"2026-08-16","so":882.0,"ro":56},{"d":"2026-08-17","so":946.0,"ro":57},{"d":"2026-08-18","so":995.0,"ro":45},{"d":"2026-08-19","so":938.0,"ro":25},{"d":"2026-08-20","so":870.0,"ro":55},{"d":"2026-08-21","so":845.0,"ro":54},{"d":"2026-08-22","so":846.0,"ro":30},{"d":"2026-08-23","so":908.0,"ro":44},{"d":"2026-08-24","so":978.0,"ro":37},{"d":"2026-08-25","so":1044.0,"ro":37},{"d":"2026-08-26","so":1051.0,"ro":40},{"d":"2026-08-27","so":1169.0,"ro":52},{"d":"2026-08-28","so":1182.0,"ro":33},{"d":"2026-08-29","so":1312.0,"ro":53},{"d":"2026-08-30","so":1123.0,"ro":59},{"d":"2026-08-31","so":1023.0,"ro":55},{"d":"2026-09-01","so":1052.0,"ro":30},{"d":"2026-09-02","so":1017.0,"ro":41},{"d":"2026-09-03","so":1005.0,"ro":68},{"d":"2026-09-04","so":1210.0,"ro":53},{"d":"2026-09-05","so":1321.0,"ro":58},{"d":"2026-09-06","so":1120.0,"ro":90},{"d":"2026-09-07","so":1189.0,"ro":60},{"d":"2026-09-08","so":1169.0,"ro":68},{"d":"2026-09-09","so":707.0,"ro":54},{"d":"2026-09-10","so":758.0,"ro":63},{"d":"2026-09-11","so":1069.0,"ro":48},{"d":"2026-09-12","so":1002.0,"ro":52},{"d":"2026-09-13","so":916.0,"ro":49},{"d":"2026-09-14","so":881.0,"ro":49},{"d":"2026-09-15","so":868.0,"ro":48},{"d":"2026-09-16","so":721.0,"ro":54},{"d":"2026-09-17","so":730.0,"ro":32},{"d":"2026-09-18","so":863.0,"ro":41},{"d":"2026-09-19","so":949.0,"ro":43},{"d":"2026-09-20","so":809.0,"ro":40},{"d":"2026-09-21","so":766.0,"ro":55},{"d":"2026-09-22","so":818.0,"ro":44},{"d":"2026-09-23","so":710.0,"ro":49},{"d":"2026-09-24","so":701.0,"ro":35},{"d":"2026-09-25","so":1159.0,"ro":37},{"d":"2026-09-26","so":936.0,"ro":53},{"d":"2026-09-27","so":962.0,"ro":51},{"d":"2026-09-28","so":870.0,"ro":35},{"d":"2026-09-29","so":932.0,"ro":36},{"d":"2026-09-30","so":1004.0,"ro":49},{"d":"2026-10-01","so":1435.0,"ro":41},{"d":"2026-10-02","so":1512.0,"ro":23},{"d":"2026-10-03","so":1518.0,"ro":40},{"d":"2026-10-04","so":1730.0,"ro":34},{"d":"2026-10-05","so":1349.0,"ro":44},{"d":"2026-10-06","so":1405.0,"ro":40},{"d":"2026-10-07","so":1155.0,"ro":78},{"d":"2026-10-08","so":1176.0,"ro":45},{"d":"2026-10-09","so":1028.0,"ro":54},{"d":"2026-10-10","so":986.0,"ro":41},{"d":"2026-10-11","so":892.0,"ro":58},{"d":"2026-10-12","so":876.0,"ro":34},{"d":"2026-10-13","so":750.0,"ro":52},{"d":"2026-10-14","so":753.0,"ro":55},{"d":"2026-10-15","so":705.0,"ro":39},{"d":"2026-10-16","so":883.0,"ro":42},{"d":"2026-10-17","so":1052.0,"ro":45},{"d":"2026-10-18","so":757.0,"ro":45},{"d":"2026-10-19","so":802.0,"ro":36},{"d":"2026-10-20","so":617.0,"ro":44},{"d":"2026-10-21","so":687.0,"ro":31},{"d":"2026-10-22","so":688.0,"ro":42},{"d":"2026-10-23","so":823.0,"ro":49},{"d":"2026-10-24","so":978.0,"ro":54},{"d":"2026-10-25","so":819.0,"ro":57},{"d":"2026-10-26","so":666.0,"ro":36},{"d":"2026-10-27","so":0,"ro":15}],"dMonths":["2026-07","2026-08","2026-09","2026-10"],"dDates":["2026-07-01","2026-07-02","2026-07-03","2026-07-04","2026-07-05","2026-07-06","2026-07-07","2026-07-08","2026-07-09","2026-07-10","2026-07-11","2026-07-12","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-18","2026-07-19","2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-25","2026-07-26","2026-07-27","2026-07-28","2026-07-29","2026-07-30","2026-07-31","2026-08-01","2026-08-02","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-08","2026-08-09","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-15","2026-08-16","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-22","2026-08-23","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-29","2026-08-30","2026-08-31","2026-09-01","2026-09-02","2026-09-03","2026-09-04","2026-09-05","2026-09-06","2026-09-07","2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-12","2026-09-13","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-19","2026-09-20","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-26","2026-09-27","2026-09-28","2026-09-29","2026-09-30","2026-10-01","2026-10-02","2026-10-03","2026-10-04","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-10","2026-10-11","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-17","2026-10-18","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-24","2026-10-25","2026-10-26","2026-10-27"],"meta":{"s_months":["2025-09","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09"],"ret_from":"2026-07-29","ret_to":"2026-10-27","sale_from":"2026-07-01","sale_to":"2026-10-26","rows_valid":4194,"rows_closed":326,"rows_dup":19,"sku_count":258,"generated":"2026-10-27 14:59","valid_s_from":"2026-01"},"total":{"sales_orders":174001,"ret_orders":9706,"ret_unmatched":1470,"rr_order":5.58,"sales_amt":4426576.47,"ret_amt":546802.48,"rr_amt":12.35,"sku_count":258}};
+const fmt = n => Math.round(n).toLocaleString('zh-CN');
+const rrColor = v => v>=10?'#dc2626':(v>=3?'#f59e0b':'#16a34a');
+const rrPill = v => `<span class="pill" style="background:${rrColor(v)}22;color:${rrColor(v)};border:1px solid ${rrColor(v)}">${v.toFixed(2)}%</span>`;
+
+const VALID_S_FROM = DATA.meta.valid_s_from;
+const VALID_D_FROM = DATA.meta.ret_from;
+const SM = Object.fromEntries(DATA.sMonthly.map(x=>[x.m,x]));
+const DM = Object.fromEntries(DATA.dMonthly.map(x=>[x.m,x]));
+const ALL_MONTHS = [...new Set([...DATA.sMonthly.map(x=>x.m), ...DATA.dMonthly.map(x=>x.m)])].sort();
+
+function sSel(){ return [document.getElementById('sFrom').value, document.getElementById('sTo').value]; }
+function monthsBetween(){
+  const [a,b]=sSel();
+  return ALL_MONTHS.filter(m=>m>=a&&m<=b);
+}
+function dRange(){ const f=document.getElementById('dFrom').value, t=document.getElementById('dTo').value; return [f,t]; }
+function dDays(){ const [a,b]=dRange(); return DATA.dDates.filter(d=>d>=a&&d<=b); }
+
+function sAll(){ document.getElementById('sFrom').value=DATA.meta.s_months[0]; document.getElementById('sTo').value=DATA.meta.s_months[DATA.meta.s_months.length-1]; refresh(); }
+function sRecent(n){
+  const ms=DATA.meta.s_months;
+  document.getElementById('sTo').value=ms[ms.length-1];
+  document.getElementById('sFrom').value=ms[Math.max(0,ms.length-n)];
+  refresh();
+}
+function fdate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dQuick(n){
+  const to=new Date(DATA.meta.sale_to||DATA.meta.ret_to);
+  const from=new Date(to); from.setDate(from.getDate()-n+1);
+  document.getElementById('dFrom').value=fdate(from);
+  document.getElementById('dTo').value=fdate(to);
+  refresh();
+}
+function dAll(){ document.getElementById('dFrom').value=DATA.meta.ret_from; document.getElementById('dTo').value=DATA.meta.sale_to||DATA.meta.ret_to; refresh(); }
+
+/* ===== KPI ===== */
+function refresh(){
+  const ms=monthsBetween();
+  let sSo=0,sRo=0; ms.forEach(m=>{const v=SM[m]; if(v){sSo+=v.so;sRo+=v.ro;}});
+  const [a,b]=dRange();
+  let dSo=0,dRo=0;
+  const days=dDays();
+  const dset=new Set(days);
+  DATA.dDaily.forEach(x=>{ if(dset.has(x.d)){dSo+=x.so;dRo+=x.ro;} });
+  const sRr=sSo?sRo/sSo*100:0, dRr=dSo?dRo/dSo*100:0;
+  document.getElementById('sSo').textContent=fmt(sSo);
+  document.getElementById('sRo').textContent=fmt(sRo);
+  document.getElementById('sRr').textContent=sRr.toFixed(2)+'%';
+  document.getElementById('dSo').textContent=fmt(dSo);
+  document.getElementById('dRo').textContent=fmt(dRo);
+  document.getElementById('dRr').textContent=dRr.toFixed(2)+'%';
+  const diff=dRr-sRr;
+  const el=document.getElementById('dRrDiff');
+  el.textContent=(diff>=0?'+':'')+diff.toFixed(2)+'pp';
+  el.style.background=Math.abs(diff)>=1?(diff>0?'#fee2e2':'#dcfce7'):'#f1f5f9';
+  el.style.color=Math.abs(diff)>=1?(diff>0?'#b91c1c':'#15803d'):'#475569';
+
+  const cov=sSo?dSo/sSo:0;
+  let msg=`<b>为什么会有差异：</b>结算单维度回答「这批订单最终退了多少」（订单号匹配，精确但有 1 个月账期）；日维度回答「今天卖的和今天退的对不对得上」（同期相除，快但不是同一批订单）。两边数字不必相等，<b>看趋势和异常信号更有价值</b>。`;
+  if(cov>1.15) msg+=`<br>⚠️ <b>结算单区间只覆盖日维度销量的 ${(cov*100).toFixed(0)}%</b>：所选月份里最近月份还没结完账（京东滚动结算滞后约 1 个月），这些月的结算单退货率<b>不可信</b>，请用日维度看当期。`;
+  else if(cov&&cov<0.85){
+    const sMon=monthsBetween().length, dMon=Math.max(1, days.length/30.4);
+    if(Math.abs(sMon-dMon)/sMon>0.35){
+      msg+=`<br>ℹ️ 两个区间长度不同（结算单 ${sMon} 个月 vs 日维度约 ${dMon.toFixed(1)} 个月），<b>销量规模不可直接比较，但退货率可比</b>。想看同口径，把两边设成同一时间段。`;
+    } else {
+      msg+=`<br>⚠️ 日维度销量只有结算单的 ${(cov*100).toFixed(0)}%：日维度区间没覆盖完整月份，或商智数据缺失。`;
+    }
+  }
+  const sFromNow=document.getElementById('sFrom').value;
+  if(sFromNow<VALID_S_FROM) msg+=`<br>🔴 <b>结算单区间包含 ${VALID_S_FROM} 之前的月份</b>：那时段的退货单还没在结算单里收全（2025-11 卖出 6,272 单却只记 6 单退货），会把整体退货率严重拉低 —— 请把起始月份设为 <b>${VALID_S_FROM}</b> 再对比。`;
+  const saleTo=DATA.meta.sale_to;
+  if(b>saleTo) msg+=`<br>🕐 销量数据只到 <b>${saleTo}</b>，${b} 之后没有销量分母，会抬高日维度退货率 —— 建议结束日设到 ${saleTo}。`;
+  document.getElementById('noteBar').innerHTML=msg;
+  renderMonthChart(); renderDayChart(); renderTable();
+}
+
+/* ===== 月度双柱对比 ===== */
+function renderMonthChart(){
+  const ms=ALL_MONTHS;
+  const W=1150,H=330,pl=46,pr=14,pt=22,pb=48,pw=W-pl-pr,ph=H-pt-pb;
+  const mx=Math.max(1,...DATA.sMonthly.map(x=>x.ro/x.so*100||0),...DATA.dMonthly.map(x=>x.ro/x.so*100||0));
+  const maxV=Math.max(6,mx*1.2);
+  const step=pw/ms.length, bw=Math.min(26,step*0.34);
+  const y=v=>pt+ph*(1-v/maxV);
+  let g='';
+  for(let i=0;i<=4;i++){const v=maxV*i/4,gy=y(v);g+=`<line x1="${pl}" y1="${gy}" x2="${W-pr}" y2="${gy}" stroke="#eef0f3"/><text x="${pl-6}" y="${gy+4}" text-anchor="end" font-size="10" fill="#9ca3af">${v.toFixed(0)}%</text>`;}
+  g+=`<line x1="${pl}" y1="${y(10)}" x2="${W-pr}" y2="${y(10)}" stroke="#dc2626" stroke-dasharray="5,4" stroke-width="1.2"/><text x="${W-pr}" y="${y(10)-5}" text-anchor="end" font-size="10" fill="#dc2626">10% 风险线</text>`;
+  let bars='';
+  ms.forEach((m,i)=>{
+    const cx=pl+step*(i+0.5);
+    const s=SM[m], d=DM[m];
+    if(s&&s.so){
+      const v=s.ro/s.so*100;
+      const early = m<VALID_S_FROM;
+      bars+=`<rect x="${cx-bw-1}" y="${y(v)}" width="${bw}" height="${y(0)-y(v)}" fill="#2563eb" opacity="${early?0.28:0.88}" rx="2"${early?' stroke="#2563eb" stroke-dasharray="3,2"':''}><title>${m} 结算单 ${v.toFixed(2)}%（销${s.so} 退${s.ro}）${early?' ⚠ 退货未结算收全，不可比':''}</title></rect>`;
+      bars+=`<text x="${cx-bw/2-1}" y="${y(v)-4}" text-anchor="middle" font-size="9.5" fill="${early?'#93c5fd':'#2563eb'}" font-weight="600">${v.toFixed(1)}</text>`;
+    }
+    if(d&&d.so){
+      const v=d.ro/d.so*100;
+      const pa=!!d.partial;
+      bars+=`<rect x="${cx+1}" y="${y(v)}" width="${bw}" height="${y(0)-y(v)}" fill="#7c3aed" opacity="${pa?0.3:0.88}" rx="2"${pa?' stroke="#7c3aed" stroke-dasharray="3,2"':''}><title>${m} 日维度 ${v.toFixed(2)}%（销${Math.round(d.so)} 退${Math.round(d.ro)}）${pa?' ⚠ 该月退货只覆盖部分日期，不可比':''}</title></rect>`;
+      bars+=`<text x="${cx+bw/2+1}" y="${y(v)-4}" text-anchor="middle" font-size="9.5" fill="${pa?'#c4b5fd':'#7c3aed'}" font-weight="600">${v.toFixed(1)}</text>`;
+    }
+    if(!s||!d) bars+=`<text x="${cx}" y="${pt+10}" text-anchor="middle" font-size="9" fill="#cbd5e1">${!s?'无结算':''}${!d?'':''}</text>`;
+    bars+=`<text x="${cx}" y="${H-16}" text-anchor="middle" font-size="10" fill="#6b7280">${m.slice(2)}</text>`;
+  });
+  document.getElementById('monthChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}">${g}${bars}</svg>`;
+}
+
+/* ===== 日维度逐日 ===== */
+function renderDayChart(){
+  const days=dDays();
+  if(!days.length){document.getElementById('dayChart').innerHTML='<div class="empty">所选区间无数据</div>';return;}
+  const dset=new Set(days);
+  const arr=DATA.dDaily.filter(x=>dset.has(x.d));
+  const W=1150,H=250,pl=46,pr=14,pt=18,pb=34,pw=W-pl-pr,ph=H-pt-pb;
+  const rates=arr.map(x=>x.so? x.ro/x.so*100 : 0);
+  const maxV=Math.max(5,...rates)*1.2;
+  const step=pw/arr.length, bw=Math.max(step*0.62,1);
+  const y=v=>pt+ph*(1-v/maxV);
+  let g='';
+  for(let i=0;i<=4;i++){const v=maxV*i/4,gy=y(v);g+=`<line x1="${pl}" y1="${gy}" x2="${W-pr}" y2="${gy}" stroke="#eef0f3"/><text x="${pl-6}" y="${gy+4}" text-anchor="end" font-size="10" fill="#9ca3af">${v.toFixed(0)}%</text>`;}
+  let bars='',lab='';
+  arr.forEach((x,i)=>{
+    const v=rates[i], cx=pl+step*(i+0.5);
+    if(x.so){
+      bars+=`<rect x="${cx-bw/2}" y="${y(v)}" width="${bw}" height="${y(0)-y(v)}" fill="${rrColor(v)}" opacity=".82"><title>${x.d} 退货${Math.round(x.ro)}/${Math.round(x.so)}单 = ${v.toFixed(2)}%</title></rect>`;
+    }
+    if(i%Math.ceil(arr.length/12)===0||i===arr.length-1) lab+=`<text x="${cx}" y="${H-10}" text-anchor="middle" font-size="9.5" fill="#9ca3af">${x.d.slice(5)}</text>`;
+  });
+  // 7日MA
+  const ma=[]; for(let i=0;i<arr.length;i++){ if(i<6){ma.push(null);continue;} let so=0,ro=0; for(let k=i-6;k<=i;k++){so+=arr[k].so;ro+=arr[k].ro;} ma.push(so?ro/so*100:null); }
+  let line=''; let started=false;
+  ma.forEach((v,i)=>{ if(v==null)return; const cx=pl+step*(i+0.5); line+=(started?'L':'M')+cx.toFixed(1)+' '+y(v).toFixed(1)+' '; started=true; });
+  const totSo=arr.reduce((a,x)=>a+x.so,0), totRo=arr.reduce((a,x)=>a+x.ro,0);
+  const avg=totSo?totRo/totSo*100:0;
+  document.getElementById('dayChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}">${g}${bars}${lab}
+    <path d="${line.trim()}" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linejoin="round"/>
+    <line x1="${pl}" y1="${y(avg)}" x2="${W-pr}" y2="${y(avg)}" stroke="#9ca3af" stroke-dasharray="4,4"/>
+    <text x="${W-pr}" y="${y(avg)-5}" text-anchor="end" font-size="10" fill="#6b7280">区间均值 ${avg.toFixed(2)}%</text></svg>`;
+}
+
+/* ===== 月度明细表 ===== */
+let sortKey='',sortDesc=true;
+function sortBy(k){ if(sortKey===k) sortDesc=!sortDesc; else {sortKey=k;sortDesc=true;} renderTable(); }
+function renderTable(){
+  const ms0=monthsBetween();
+  const [a,b]=dRange();
+  const dmSet=new Set();
+  DATA.dMonthly.forEach(x=>{ if(x.m>=a.slice(0,7)&&x.m<=b.slice(0,7)) dmSet.add(x.m); });
+  let rows=[...new Set([...ms0,...dmSet])].sort();
+  if(sortKey==='so') rows.sort((x,y)=>sortDesc?(SM[y]?SM[y].so:0)-(SM[x]?SM[x].so:0):(SM[x]?SM[x].so:0)-(SM[y]?SM[y].so:0));
+  let tS=0,tR=0,tDS=0,tDR=0;
+  const html=rows.map(m=>{
+    const s=SM[m], d=DM[m];
+    const sSo=s?s.so:0, sRo=s?s.ro:0, sRr=sSo?sRo/sSo*100:null;
+    const dSo=d?d.so:0, dRo=d?d.ro:0, dRr=dSo?dRo/dSo*100:null;
+    tS+=sSo;tR+=sRo;tDS+=dSo;tDR+=dRo;
+    const diff=(sRr!=null&&dRr!=null&&!(d&&d.partial))?dRr-sRr:null;
+    const cov=sSo&&dSo?dSo/sSo*100:null;
+    let sig='',sigBg='#f1f5f9',sigC='#475569';
+    if(!sSo){sig='仅日维度';sigBg='#ede9fe';sigC='#6d28d9';}
+    else if(m<VALID_S_FROM){sig='结算单不完整';sigBg='#fef2f2';sigC='#b91c1c';}
+    else if(cov&&cov>115){sig='结算单未结完';sigBg='#fef3c7';sigC='#92400e';}
+    else if(cov&&cov<85){sig='日维度不全';sigBg='#ffedd5';sigC='#c2410c';}
+    else if(d&&d.partial){sig='日维度不完整';sigBg='#ffedd5';sigC='#c2410c';}
+    else {sig='可比';sigBg='#dcfce7';sigC='#15803d';}
+    const dc=diff==null?'#94a3b8':(Math.abs(diff)>=1?(diff>0?'#b91c1c':'#15803d'):'#94a3b8');
+    return `<tr><td><b>${m}</b></td>
+      <td class="c">${sSo?fmt(sSo):'—'}</td><td class="c">${sSo?fmt(sRo):'—'}</td><td class="c">${sRr!=null?rrPill(sRr):'—'}</td>
+      <td class="c">${dSo?fmt(dSo):'—'}</td><td class="c">${dSo?fmt(dRo):'—'}</td><td class="c">${dRr!=null?rrPill(dRr)+(d&&d.partial?'<span title="该月日维度退货只覆盖部分日期（销退单导出自 '+VALID_D_FROM+' 起），退货率被低估，不可比" style="color:#b91c1c;font-weight:700">*</span>':''):'—'}</td>
+      <td class="c" style="color:${dc};font-weight:700">${diff==null?'—':(diff>=0?'+':'')+diff.toFixed(2)}</td>
+      <td class="c">${cov==null?'—':cov.toFixed(0)+'%'}</td>
+      <td class="c"><span class="pill" style="background:${sigBg};color:${sigC}">${sig}</span></td></tr>`;
+  }).join('');
+  document.getElementById('monBody').innerHTML=html||'<tr><td colspan="10" class="empty">所选区间无数据</td></tr>';
+  document.getElementById('monFoot').innerHTML=`合计：结算单 ${fmt(tS)} 销 / ${fmt(tR)} 退（${tS?(tR/tS*100).toFixed(2):'0.00'}%）· 日维度 ${fmt(tDS)} 销 / ${fmt(tDR)} 退（${tDS?(tDR/tDS*100).toFixed(2):'0.00'}%）`;
+}
+
+['sFrom','sTo','dFrom','dTo'].forEach(id=>document.getElementById(id).addEventListener('change',refresh));
+refresh();
+</script>
+</body>
+</html>
