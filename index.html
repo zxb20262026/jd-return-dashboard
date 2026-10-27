@@ -16,13 +16,32 @@ h1{font-size:24px;margin-bottom:6px}
 .card .t{font-size:16px;font-weight:700}
 .card .d{font-size:13px;color:#6b7280;margin-top:2px}
 .card .arrow{margin-left:auto;color:#9ca3af;font-size:18px}
+.sec{font-size:12.5px;font-weight:700;color:#6b7280;margin:22px 0 10px 2px;letter-spacing:.4px}
+.card.new{border-color:#c7d2fe;background:linear-gradient(180deg,#f8faff,#fff)}
+.badge{font-size:10px;background:#2563eb;color:#fff;border-radius:5px;padding:1px 6px;vertical-align:middle;font-weight:700}
 footer{text-align:center;color:#9ca3af;font-size:12px;margin-top:30px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>📦 京东退货分析看板</h1>
-  <div class="sub">星微光学 / 金甲库 · 京东自营 · 文教目录 · 2026年1-9月</div>
+  <div class="sub">星微光学 / 金甲库 · 京东自营 · 文教 + 户外目录 · 2026年1-10月</div>
+
+  <div class="sec">⚖️ 双维度对比（结算单 × 日销售）</div>
+
+  <a class="card new" href="cmp_category_dashboard_2026.html">
+    <div class="ic">⚖️</div>
+    <div><div class="t">双维度退货率对比看板 <span class="badge">NEW</span></div><div class="d">结算单（滞后1月·精确）vs 日销售（即时·近似），2个维度时间分别选，差异一眼看清</div></div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a class="card new" href="cmp_monthly_trend_2026.html">
+    <div class="ic">📈</div>
+    <div><div class="t">双维度月度趋势对比 <span class="badge">NEW</span></div><div class="d">月度双柱对照 + 日维度逐日退货率 + 结算单覆盖度（识别未结完的月份）</div></div>
+    <div class="arrow">›</div>
+  </a>
+
+  <div class="sec">📦 结算单维度（订单级精确）</div>
 
   <a class="card" href="category_return_dashboard_2026.html">
     <div class="ic">📊</div>
