@@ -94,6 +94,7 @@ table.tbl tbody tr:hover{background:#fafbfc}
 .ps-sum .b .l{font-size:11px;color:var(--sub)}
 .ps-row{display:flex;align-items:center;gap:10px;padding:7px 6px;border-bottom:1px dashed #eef0f3;cursor:pointer;border-radius:7px}
 .ps-row:hover{background:#f8fafc}
+.ps-row.act{background:#eef1f7;box-shadow:inset 0 0 0 1px #d7dce6}
 .ps-rank{flex:0 0 22px;font-size:11px;color:#9ca3af;text-align:center}
 .ps-name{flex:0 0 190px;font-size:12.5px;font-weight:600;color:#1f2430}
 .ps-bar{flex:1;height:16px;background:#eef0f3;border-radius:5px;overflow:hidden}
@@ -101,13 +102,27 @@ table.tbl tbody tr:hover{background:#fafbfc}
 .ps-num{flex:0 0 128px;font-size:12px;text-align:right;white-space:nowrap}
 .ps-skuc{flex:0 0 66px;font-size:11px;color:var(--sub);text-align:center}
 .ps-arrow{flex:0 0 16px;font-size:11px;color:#9ca3af;text-align:center}
-.ps-det{display:none;margin:2px 0 12px 32px;padding:10px 14px;background:#fbfcfd;border:1px solid var(--line);border-left:3px solid #c4b5fd;border-radius:9px}
-.ps-det.open{display:block}
+/* 问题点拆解并入「退货原因分布」卡片 */
+.ps-block{margin-top:18px;padding-top:16px;border-top:2px solid #eef0f3}
+.ps-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:15px;font-weight:700;color:#1f2430;margin-bottom:6px}
+.ps-sub{font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:12px}
+/* 悬浮框：点击问题点行 → 展示「问题描述」原文与时间 */
+.ps-pop{display:none;position:fixed;left:0;top:0;z-index:45;width:min(560px,calc(100vw - 24px));
+  max-height:min(480px,72vh);overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;
+  box-shadow:0 18px 48px rgba(15,23,42,.22);padding:12px 16px 12px}
+.ps-pop.open{display:block}
+.ps-pop-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:9px;position:sticky;top:0;background:#fff;padding-bottom:6px;z-index:1}
+.ps-pop-hd b{font-size:13.5px;color:#1f2430}
+.ps-pop-hd .n{font-size:11.5px;color:#ea580c;font-weight:700}
+.ps-pop-x{margin-left:auto;cursor:pointer;color:#9ca3af;font-size:14px;line-height:1;padding:2px 4px;border-radius:6px}
+.ps-pop-x:hover{color:#111827;background:#f3f4f6}
+.pq{display:flex;gap:10px;font-size:12.5px;padding:5px 0;border-bottom:1px dashed #eef0f3;line-height:1.6}
+.pq .t{flex:1;color:#374151;word-break:break-word}
+.pq .d{flex:0 0 70px;text-align:right;color:#9ca3af;font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ps-pop-ft{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:11px;color:#9ca3af}
 .ps-tsk{font-size:11.5px;color:var(--sub);margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .ps-tsk .tsk{background:#eef2ff;border:1px solid #dbe3ff;border-radius:20px;padding:2px 9px;font-size:11.5px;color:#3730a3;cursor:pointer}
 .ps-tsk .tsk:hover{background:#e0e7ff}
-.ps-quote{font-size:12px;color:#374151;padding:4px 0 4px 10px;border-left:2px solid #e5e7eb;margin-bottom:5px;line-height:1.55}
-.ps-quote s{color:#9ca3af;text-decoration:none;font-size:10.5px;margin-left:6px}
 .ps-non{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:11.5px;color:var(--sub);line-height:1.9}
 .ps-non b{color:#374151}
 .chip{display:inline-block;font-size:11px;background:#ede9fe;color:#6d28d9;border-radius:20px;padding:2px 9px;margin-left:8px;font-weight:600;vertical-align:middle}
@@ -272,13 +287,14 @@ body{padding-bottom:86px}
     <h2>退货原因分布（日维度 · 所选日期区间）</h2>
     <div class="desc">按销退单的「申请原因」归并；数据源与结算单原因一致，但时间范围跟着日维度走。<b style="color:#6d28d9">点任意条形 = 只看这一类原因，下方「问题点拆解」同步过滤；再点一次取消。</b></div>
     <div id="reasonBars"></div>
-  </div>
-  <div class="card">
-    <h2>🔧 问题点拆解（退货「问题描述」原文）<span class="chip" id="psChip" style="display:none"></span></h2>
-    <div class="desc">把销退单里人工填写的「问题描述」逐条拆成问题点 —— 一条描述提到几个点就记几次，所以「提及次数」之和会大于退货单数。只统计真正写了具体问题的退货；「不想要 / 买错」等非商品原因单独列在最下方。<b>点任意一行可展开该类问题的原始原话与高发 SKU。</b></div>
-    <div class="ps-sum" id="psSum"></div>
-    <div id="psList"></div>
-    <div class="ps-non" id="psNon"></div>
+
+    <div class="ps-block" id="psBlock">
+      <div class="ps-hd">🔧 问题点拆解（退货「问题描述」原文）<span class="chip" id="psChip" style="display:none"></span></div>
+      <div class="ps-sub">把销退单里人工填写的「问题描述」逐条拆成问题点 —— 一条描述提到几个点就记几次，所以「提及次数」之和会大于退货单数。只统计真正写了具体问题的退货；「不想要 / 买错」等非商品原因单独列在最下方。<b style="color:#6d28d9">点任意一行 → 悬浮框查看该类问题的「问题描述」原文与时间。</b></div>
+      <div class="ps-sum" id="psSum"></div>
+      <div id="psList"></div>
+      <div class="ps-non" id="psNon"></div>
+    </div>
   </div>
   <div class="card">
     <h2>各产品线退货原因构成（日维度）</h2>
@@ -293,6 +309,8 @@ body{padding-bottom:86px}
   想了解更多店铺经营诊断，欢迎访问 <a href="https://client.teesoft.cn/#/login_1" target="_blank">https://client.teesoft.cn/#/login_1</a>
 </footer>
 </div>
+
+<div class="ps-pop" id="psPop"></div>
 
 <div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
@@ -322,7 +340,7 @@ const esc = t => String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const fmt = n => Math.round(n).toLocaleString('zh-CN');
 const rrColor = v => v>=10?'#dc2626':(v>=3?'#f59e0b':'#16a34a');
 const rrPill = v => `<span class="pill" style="background:${rrColor(v)}22;color:${rrColor(v)};border:1px solid ${rrColor(v)}">${v.toFixed(2)}%</span>`;
-function switchTab(i,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel'+i).classList.add('active');}
+function switchTab(i,el){closePsPop();document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel'+i).classList.add('active');}
 
 /* ===== 时间选择 ===== */
 let SEL_MONTHS = ["2026-08", "2026-09"];
@@ -516,6 +534,7 @@ function renderSku(){
 }
 
 function renderReason(){
+  closePsPop();
   const list=baseFiltered();
   const days=daysInRange();
   const ar={};
@@ -552,13 +571,79 @@ function renderReason(){
 
 /* ===== 问题点拆解（问题描述原文 → 问题点） ===== */
 let SEL_REASON = null;          // 申请原因筛选（null=全部），与上方原因条形联动
-const psOpen = {};              // 展开状态
+let LAST_G = null;              // 最近一次聚合结果，供悬浮框复用
+let POP_KEY = null;             // 当前悬浮框对应的问题点
 function pickReason(k){
   const i = (k===null)? null : RIDX[k];
   SEL_REASON = (SEL_REASON===i)? null : i;
   renderReason();
 }
-function togglePs(key){ psOpen[key]=!psOpen[key]; renderProblems(); }
+
+/* 悬浮框：展示该问题点的「问题描述」原文 + 时间（销退单创建日） */
+function psPopHtml(key){
+  const ti=P.topics.findIndex(t=>t[0]===key);
+  const t=P.topics[ti]||['','（未知）',true];
+  const g=LAST_G||probAgg();
+  const n=(g.cnt||{})[ti]||0;
+  const total=g.total||0;
+  const seg=(g.skuCnt||{})[ti]||{};
+  const topSku=Object.entries(seg).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([si,c])=>{
+    const s=S_MAP[PSKU[si]]||{};
+    return `<span class="tsk" onclick="jumpSku('${PSKU[si]}')" title="${esc(s.name||'')}">${esc(s.short||PSKU[si])} · ${c} 单</span>`;
+  }).join('');
+  const all=(P.quotes[key]||[]).filter(q=>q[1]>=g.i0&&q[1]<=g.i1);
+  const qs=all.slice(0,30);
+  return `<div class="ps-pop-hd"><b>${esc(t[1])}</b><span class="n">${fmt(n)} 次 · 占区间退货 ${total?(n/total*100).toFixed(1):'0.0'}%</span><span class="ps-pop-x" onclick="closePsPop()" title="关闭（Esc）">✕</span></div>`+
+    `<div class="ps-tsk">高发 SKU（点击跳到 SKU 对比）：${topSku||'—'}</div>`+
+    (qs.length? qs.map(q=>`<div class="pq"><span class="t">${esc(q[0])}</span><span class="d">${ALL_DATES[q[1]]}</span></div>`).join('')
+               : '<div class="pq"><span class="t" style="color:#9ca3af">该区间没有留下这类原话样本</span></div>')+
+    `<div class="ps-pop-ft">共 ${fmt(all.length)} 条样本${all.length>30?'（显示前 30 条）':''} · 时间 = 销退单创建日期</div>`;
+}
+function openPsPop(key, ev){
+  if(ev) ev.stopPropagation();
+  const pop=document.getElementById('psPop');
+  if(!pop) return;
+  if(POP_KEY===key && pop.classList.contains('open')){ closePsPop(); return; }
+  POP_KEY=key;
+  pop.innerHTML=psPopHtml(key);
+  pop.style.visibility='hidden';
+  pop.classList.add('open');
+  const row=ev&&ev.currentTarget? ev.currentTarget : null;
+  const a=(row && typeof row.getBoundingClientRect==='function')? row.getBoundingClientRect() : null;
+  const pw=pop.offsetWidth, ph=pop.offsetHeight;
+  const M=12, BOT=88;          // BOT = 底部菜单栏占用高度，避免悬浮框压住导航
+  let left, top;
+  if(a){
+    // 优先贴在所点行下方、右边缘对齐；下方放不下就翻到上方
+    left = Math.max(M, Math.min(a.right - pw, window.innerWidth - pw - M));
+    top = a.bottom + 6;
+    if(top + ph > window.innerHeight - BOT) top = a.top - ph - 6;
+    if(top < M || top + ph > window.innerHeight - BOT) top = Math.max(M, window.innerHeight - BOT - ph);
+  } else { left = Math.max(10,(window.innerWidth-pw)/2); top = Math.max(10,(window.innerHeight-ph)/2); }
+  pop.style.left=left+'px'; pop.style.top=top+'px';
+  pop.style.visibility='visible';
+  document.querySelectorAll('#psList .ps-row.act').forEach(e=>e.classList.remove('act'));
+  if(row) row.classList.add('act');
+}
+function closePsPop(){
+  const pop=document.getElementById('psPop');
+  POP_KEY=null;
+  if(pop){ pop.classList.remove('open'); pop.innerHTML=''; }
+  document.querySelectorAll('#psList .ps-row.act').forEach(e=>e.classList.remove('act'));
+}
+document.addEventListener('click', e=>{
+  const pop=document.getElementById('psPop');
+  if(!pop||!pop.classList.contains('open')) return;
+  if(pop.contains(e.target)) return;
+  if(e.target.closest && e.target.closest('#psList .ps-row')) return;
+  closePsPop();
+}, true);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closePsPop(); });
+window.addEventListener('resize', ()=>closePsPop());
+window.addEventListener('scroll', e=>{
+  if(e.target && e.target.id==='psPop') return;   // 悬浮框内部滚动不关闭
+  closePsPop();
+}, true);
 function jumpSku(sku){
   document.getElementById('fSearch').value=sku;
   const tabs=document.querySelectorAll('.tab');
@@ -605,7 +690,7 @@ function probAgg(){
   return {total,totalAll,gift,prod,nonprod,blank,unmatched,mentions,cnt,skuCnt,nonCnt,skuN:skuSet.size,i0,i1};
 }
 function renderProblems(){
-  const g=probAgg();
+  const g=LAST_G=probAgg();
   const chip=document.getElementById('psChip');
   if(chip){
     if(SEL_REASON!==null){
@@ -626,28 +711,14 @@ function renderProblems(){
     const pct=g.total? x.n/g.total*100 : 0;
     const seg=g.skuCnt[x.i]||{};
     const skuN=Object.keys(seg).length;
-    const open=!!psOpen[x.key];
-    let det='';
-    if(open){
-      const topSku=Object.entries(seg).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([si,c])=>{
-        const s=S_MAP[PSKU[si]]||{};
-        return `<span class="tsk" onclick="event.stopPropagation();jumpSku('${PSKU[si]}')" title="${esc(s.name||'')}">${esc(s.short||PSKU[si])} · ${c} 单</span>`;
-      }).join('');
-      const qs=(P.quotes[x.key]||[]).filter(q=>q[1]>=g.i0&&q[1]<=g.i1).slice(0,10);
-      det=`<div class="ps-det open">
-        <div class="ps-tsk">高发 SKU（点击跳到 SKU 对比）：${topSku||'—'}</div>
-        ${qs.length? qs.map(q=>`<div class="ps-quote">${esc(q[0])}<s>${ALL_DATES[q[1]].slice(5)}</s></div>`).join('')
-                  : '<div class="ps-quote" style="color:#9ca3af">该区间没留下这类原话样本</div>'}
-      </div>`;
-    }
-    return `<div class="ps-row" onclick="togglePs('${x.key}')">
+    return `<div class="ps-row" onclick="openPsPop('${x.key}',event)" title="点击查看该类问题的「问题描述」原文与时间">
       <div class="ps-rank">${rk+1}</div>
       <div class="ps-name">${esc(x.name)}</div>
       <div class="ps-bar"><i style="width:${x.n/max*100}%"></i></div>
       <div class="ps-num"><b>${fmt(x.n)}</b> 次 · 占 ${pct.toFixed(1)}%</div>
       <div class="ps-skuc">${skuN} SKU</div>
-      <div class="ps-arrow">${open?'▾':'▸'}</div>
-    </div>${det}`;
+      <div class="ps-arrow">›</div>
+    </div>`;
   }).join('') : '<div class="empty">当前筛选没有可拆解的具体问题点</div>';
 
   const nonArr=P.topics.map((t,i)=>({name:t[1],n:g.nonCnt[i]||0}))
